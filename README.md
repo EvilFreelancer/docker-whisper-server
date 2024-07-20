@@ -75,7 +75,7 @@ curl 127.0.0.1:9000/load \
 
 <details>
 <summary>
-<i>Advanced Configuration</i>
+<i>Расширенная конфигурация</i>
 </summary>
 
 | Name                      | Default    | Description                                            |
