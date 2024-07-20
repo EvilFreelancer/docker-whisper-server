@@ -14,6 +14,8 @@ It uses Whisper models to transcribe audio files via an HTTP API, similar to Ope
 - Support for various Whisper models
 - Configurable via environment variables
 - Dockerized for easy deployment
+- Includes ffmpeg for audio processing
+- Automatically converts audio to WAV format
 
 ## Installation
 
