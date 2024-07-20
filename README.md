@@ -6,7 +6,7 @@ HTTP-сервер транскрипции Whisper.cpp с API, подобным 
 Docker-контейнер с сервером транскрипции, основанным
 на [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
-**Русский** | [English](./README.en.md)
+**Русский** | [中文](./README.zh.md) | [English](./README.en.md)
 
 ## Возможности
 
@@ -52,6 +52,32 @@ Runtime, обратитесь к моей публикации
    ```shell
    docker-compose build
    ```
+
+4. Запустим Docker-контейнер:
+
+   ```shell
+   docker-compose up -d
+   ```
+
+5. Перейдите по адресу http://localhost:8080 в браузере:
+
+   ![Swagger UI](./assets/swagger.png)
+
+## Эндпоинты
+
+### /inference
+
+Транскрибируем аудиофайл:
+
+```shell
+curl 127.0.0.1:9000/inference \
+  -H "Content-Type: multipart/form-data" \
+  -F file="@<file-path>" \
+  -F temperature="0.0" \
+  -F temperature_inc="0.2" \
+  -F response_format="json"
+```
+
 ### /load
 
 Сменить модель Whisper:

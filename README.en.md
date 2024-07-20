@@ -5,7 +5,7 @@ Whisper.cpp HTTP transcription server with OAI-like API in Docker.
 This project provides a Dockerized transcription server based
 on [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
-**English** | [Русский](./README.md)
+[Русский](./README.md) | [中文](./README.zh.md) | **English**
 
 ## Features
 
