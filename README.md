@@ -25,7 +25,7 @@ It uses Whisper models to transcribe audio files via an HTTP API, similar to Ope
 cp docker-compose.dist.yml docker-compose.yml
 ```
 
-2. Build the Docker images:
+2. Build the Docker image:
 
 ```shell
 docker-compose build
@@ -36,6 +36,10 @@ docker-compose build
 ```shell
 docker-compose up -d
 ```
+
+4. Navigate to http://localhost:8080
+
+
 
 ## Endpoints
 
