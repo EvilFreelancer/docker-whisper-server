@@ -100,43 +100,43 @@ curl 127.0.0.1:9000/load \
 <i>Advanced Configuration</i>
 </summary>
 
-| Name                      | Default     | Description                                         |
-|---------------------------|-------------|-----------------------------------------------------|
-| `WHISPER_THREADS`         | 4           | Number of threads to use for inference              |
-| `WHISPER_PROCESSORS`      | 1           | Number of processors to use for inference           |
-| `WHISPER_HOST`            | 0.0.0.0     | Host IP or hostname to bind the server to           |
-| `WHISPER_PORT`            | 9000        | Port number to listen on                            |
-| `WHISPER_INFERENCE_PATH`  | /inference  | Path to load inference models from                  |
-| `WHISPER_PUBLIC_PATH`     |             | Path to the public folder                           |
-| `WHISPER_REQUEST_PATH`    |             | Request path for all requests                       |
-| `WHISPER_OV_E_DEVICE`     | CPU         | OpenViBE Event Device to use                        |
-| `WHISPER_OFFSET_T`        | 0           | Time offset in milliseconds                         |
-| `WHISPER_OFFSET_N`        | 0           | Number of seconds to offset                         |
-| `WHISPER_DURATION`        | 0           | Duration of the audio file in milliseconds          |
-| `WHISPER_MAX_CONTEXT`     | -1          | Maximum context size for inference                  |
-| `WHISPER_MAX_LEN`         | 0           | Maximum length of output text                       |
-| `WHISPER_BEST_OF`         | 2           | Best-of-N strategy for inference                    |
-| `WHISPER_BEAM_SIZE`       | -1          | Beam size for search                                |
-| `WHISPER_AUDIO_CTX`       | 0           | Audio context to use for inference                  |
-| `WHISPER_WORD_THOLD`      | 0.01        | Word threshold for segmentation                     |
-| `WHISPER_ENTROPY_THOLD`   | 2.40        | Entropy threshold for segmentation                  |
-| `WHISPER_LOGPROB_THOLD`   | -1.00       | Log probability threshold for segmentation          |
-| `WHISPER_LANGUAGE`        | en          | Language code to use for translation or diarization |
-| `WHISPER_PROMPT`          |             | Initial prompt                                      |
-| `WHISPER_DTW`             |             | Compute token-level timestamps                      |
-| `WHISPER_CONVERT`         | true        | Convert audio to WAV, requires ffmpeg on the server |
-| `WHISPER_SPLIT_ON_WORD`   | false       | Boolean flag to split output on words               |
-| `WHISPER_DEBUG_MODE`      | false       | Enable debug mode                                   |
-| `WHISPER_TRANSLATE`       | false       | Translate from source language to english           |
-| `WHISPER_DIARIZE`         | false       | Stereo audio diarization                            |
-| `WHISPER_TINYDIARIZE`     | false       | Enable tinydiarize (requires a tdrz model)          |
-| `WHISPER_NO_FALLBACK`     | false       | Do not use temperature fallback while decoding      |
-| `WHISPER_PRINT_SPECIAL`   | false       | Print special tokens                                |
-| `WHISPER_PRINT_COLORS`    | false       | Print colors                                        |
-| `WHISPER_PRINT_REALTIME`  | false       | Print output in realtime                            |
-| `WHISPER_PRINT_PROGRESS`  | false       | Print progress                                      |
-| `WHISPER_NO_TIMESTAMPS`   | false       | Do not print timestamps                             |
-| `WHISPER_DETECT_LANGUAGE` | false       | Exit after automatically detecting language         |
+| Name                      | Default    | Description                                         |
+|---------------------------|------------|-----------------------------------------------------|
+| `WHISPER_THREADS`         | 4          | Number of threads to use for inference              |
+| `WHISPER_PROCESSORS`      | 1          | Number of processors to use for inference           |
+| `WHISPER_HOST`            | 0.0.0.0    | Host IP or hostname to bind the server to           |
+| `WHISPER_PORT`            | 9000       | Port number to listen on                            |
+| `WHISPER_INFERENCE_PATH`  | /inference | Inference path for all requests                     |
+| `WHISPER_PUBLIC_PATH`     |            | Path to the public folder                           |
+| `WHISPER_REQUEST_PATH`    |            | Request path for all requests                       |
+| `WHISPER_OV_E_DEVICE`     | CPU        | OpenViBE Event Device to use                        |
+| `WHISPER_OFFSET_T`        | 0          | Time offset in milliseconds                         |
+| `WHISPER_OFFSET_N`        | 0          | Number of seconds to offset                         |
+| `WHISPER_DURATION`        | 0          | Duration of the audio file in milliseconds          |
+| `WHISPER_MAX_CONTEXT`     | -1         | Maximum context size for inference                  |
+| `WHISPER_MAX_LEN`         | 0          | Maximum length of output text                       |
+| `WHISPER_BEST_OF`         | 2          | Best-of-N strategy for inference                    |
+| `WHISPER_BEAM_SIZE`       | -1         | Beam size for search                                |
+| `WHISPER_AUDIO_CTX`       | 0          | Audio context to use for inference                  |
+| `WHISPER_WORD_THOLD`      | 0.01       | Word threshold for segmentation                     |
+| `WHISPER_ENTROPY_THOLD`   | 2.40       | Entropy threshold for segmentation                  |
+| `WHISPER_LOGPROB_THOLD`   | -1.00      | Log probability threshold for segmentation          |
+| `WHISPER_LANGUAGE`        | en         | Language code to use for translation or diarization |
+| `WHISPER_PROMPT`          |            | Initial prompt                                      |
+| `WHISPER_DTW`             |            | Compute token-level timestamps                      |
+| `WHISPER_CONVERT`         | true       | Convert audio to WAV, requires ffmpeg on the server |
+| `WHISPER_SPLIT_ON_WORD`   | false      | Boolean flag to split output on words               |
+| `WHISPER_DEBUG_MODE`      | false      | Enable debug mode                                   |
+| `WHISPER_TRANSLATE`       | false      | Translate from source language to english           |
+| `WHISPER_DIARIZE`         | false      | Stereo audio diarization                            |
+| `WHISPER_TINYDIARIZE`     | false      | Enable tinydiarize (requires a tdrz model)          |
+| `WHISPER_NO_FALLBACK`     | false      | Do not use temperature fallback while decoding      |
+| `WHISPER_PRINT_SPECIAL`   | false      | Print special tokens                                |
+| `WHISPER_PRINT_COLORS`    | false      | Print colors                                        |
+| `WHISPER_PRINT_REALTIME`  | false      | Print output in realtime                            |
+| `WHISPER_PRINT_PROGRESS`  | false      | Print progress                                      |
+| `WHISPER_NO_TIMESTAMPS`   | false      | Do not print timestamps                             |
+| `WHISPER_DETECT_LANGUAGE` | false      | Exit after automatically detecting language         |
 
 </details>
 
