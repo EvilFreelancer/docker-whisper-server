@@ -37,9 +37,9 @@ docker-compose build
 docker-compose up -d
 ```
 
-4. Navigate to http://localhost:8080
+4. Navigate to http://localhost:8080 in browser:
 
-
+![Swagger UI](./assets/swagger.png)
 
 ## Endpoints
 
