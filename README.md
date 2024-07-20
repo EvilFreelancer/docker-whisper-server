@@ -59,7 +59,7 @@ Runtime, обратитесь к моей публикации
    docker-compose up -d
    ```
 
-5. Перейдите по адресу http://localhost:8080 в браузере:
+5. Перейдем по адресу http://localhost:8080 в браузере:
 
    ![Swagger UI](./assets/swagger.png)
 
