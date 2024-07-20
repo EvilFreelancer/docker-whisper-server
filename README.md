@@ -58,7 +58,7 @@ Load a new Whisper model:
 ```shell
 curl 127.0.0.1:9000/load \
 -H "Content-Type: multipart/form-data" \
--F model="<path-to-model-file>"
+-F model="<path-to-model-file-in-docker-container>"
 ```
 
 ## Environment variables
