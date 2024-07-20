@@ -1,22 +1,25 @@
 # Whisper.cpp API Webserver in Docker
 
-Whisper.cpp HTTP transcription server with OAI-like API in Docker.
+HTTP-сервер транскрипции Whisper.cpp с API, подобным OpenAI, в Docker.
 
-This project provides a Dockerized transcription server based
-on [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
+Этот проект содержит в себе набор инструментов и конфигураций для сборки
+Docker-контейнер с сервером транскрипции, основанным
+на [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
-## Features
+**Русский** | [English](./README.en.md)
 
-- Dockerized whisper.cpp HTTP server for audio transcription
-- Configurable via environment variables
-- Automatically converts audio to WAV format
-- Automatically downloads required model on startup
-- Can quantize any Whisper model to the required type on startup
+## Возможности
 
-## Requirements
+- Docker-контейнер с HTTP-сервером транскрипции Whisper.cpp
+- Настраивается через переменные окружения
+- Автоматически конвертирует аудио в формат WAV
+- Автоматически загружает выбранную модель при запуске
+- Может квантовать любую модель Whisper до нужного типа при запуске
 
-Before you begin, ensure you have a machine with an GPU that supports modern CUDA, due to the computational
-demands of the docker image.
+## Требования
+
+Перед началом убедитесь, что на вашей машине установлена карточка с GPU, поддерживающим современную CUDA, из-за
+вычислительных требований Docker-образа.
 
 * Nvidia GPU
 * CUDA
@@ -24,123 +27,98 @@ demands of the docker image.
 * Docker Compose
 * Nvidia Docker Runtime
 
-For detailed instructions on how to prepare a Linux machine for running neural networks, including the installation of
-CUDA, Docker, and Nvidia Docker Runtime, please refer to the
-publication "[How to Prepare Linux for Running and Training Neural Networks? (+ Docker)](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)"
-on Russian.
+Для подробных инструкций по подготовке Linux-машины к запуску нейросетей, включая установку CUDA, Docker и Nvidia Docker
+Runtime, обратитесь к моей публикации
+"[Как подготовить Linux к запуску и обучению нейросетей? (+ Docker)](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)".
 
-## Installation
+## Установка
 
-1. Clone the repo and switch to sources root:
+1. Склонируем репозиторий, после чего перейдём в корень исходников:
 
    ```shell
    git clone https://github.com/EvilFreelancer/docker-whisper-server.git
    cd docker-whisper-server
+
+2. Скопируем конфигурацию Docker Compose из шаблона:
+
+   ```shell
+   cp docker-compose.dist.yml docker-compose.yml
    ```
 
-2. Copy the provided Docker Compose template:
+   В конфиге вы можете настроить переменные окружения, версию whisper.cpp, порты, подключаемы тома и так далее.
 
-    ```shell
-    cp docker-compose.dist.yml docker-compose.yml
-    ```
-
-3. Build the Docker image:
-
-    ```shell
-    docker-compose build
-    ```
-
-4. Start the services:
-
-    ```shell
-    docker-compose up -d
-    ```
-
-5. Navigate to http://localhost:8080 in browser:
-
-   ![Swagger UI](./assets/swagger.png)
-
-## Endpoints
-
-### /inference
-
-Transcribe an audio file:
-
-```shell
-curl 127.0.0.1:9000/inference \
--H "Content-Type: multipart/form-data" \
--F file="@<file-path>" \
--F temperature="0.0" \
--F temperature_inc="0.2" \
--F response_format="json"
-```
-
+3. Cобираем Docker-образ:
+   
+   ```shell
+   docker-compose build
+   ```
 ### /load
 
-Load a new Whisper model:
+Сменить модель Whisper:
 
 ```shell
 curl 127.0.0.1:9000/load \
--H "Content-Type: multipart/form-data" \
--F model="<path-to-model-file-in-docker-container>"
+   -H "Content-Type: multipart/form-data" \
+   -F model="<path-to-model-file-in-docker-container>"
 ```
 
-## Environment variables
+## Переменные окружения
 
-**Basic configuration**
+### Базовая конфигурация
 
-| Name                         | Default                               | Description                                                                      |
-|------------------------------|---------------------------------------|----------------------------------------------------------------------------------|
-| `WHISPER_MODEL`              | base.en                               | The default Whisper model to use                                                 |
-| `WHISPER_MODEL_PATH`         | /app/models/ggml-${WHISPER_MODEL}.bin | The default path to the Whisper model file                                       |
-| `WHISPER_MODEL_QUANTIZATION` |                                       | Level of quantization (will be applied only if `WHISPER_MODEL_PATH` not changed) |
+
+| Name                         | Default                               | Description                                                                   |
+|------------------------------|---------------------------------------|-------------------------------------------------------------------------------|
+| `WHISPER_MODEL`              | base.en                               | Модель Whisper, используемая по умолчанию                                     |
+| `WHISPER_MODEL_PATH`         | /app/models/ggml-${WHISPER_MODEL}.bin | Путь к файлу модели Whisper по умолчанию                                      |
+| `WHISPER_MODEL_QUANTIZATION` |                                       | Уровень квантования (применяется только если `WHISPER_MODEL_PATH` не изменен) |
 
 <details>
 <summary>
 <i>Advanced Configuration</i>
 </summary>
 
-| Name                      | Default    | Description                                         |
-|---------------------------|------------|-----------------------------------------------------|
-| `WHISPER_THREADS`         | 4          | Number of threads to use for inference              |
-| `WHISPER_PROCESSORS`      | 1          | Number of processors to use for inference           |
-| `WHISPER_HOST`            | 0.0.0.0    | Host IP or hostname to bind the server to           |
-| `WHISPER_PORT`            | 9000       | Port number to listen on                            |
-| `WHISPER_INFERENCE_PATH`  | /inference | Inference path for all requests                     |
-| `WHISPER_PUBLIC_PATH`     |            | Path to the public folder                           |
-| `WHISPER_REQUEST_PATH`    |            | Request path for all requests                       |
-| `WHISPER_OV_E_DEVICE`     | CPU        | OpenViBE Event Device to use                        |
-| `WHISPER_OFFSET_T`        | 0          | Time offset in milliseconds                         |
-| `WHISPER_OFFSET_N`        | 0          | Number of seconds to offset                         |
-| `WHISPER_DURATION`        | 0          | Duration of the audio file in milliseconds          |
-| `WHISPER_MAX_CONTEXT`     | -1         | Maximum context size for inference                  |
-| `WHISPER_MAX_LEN`         | 0          | Maximum length of output text                       |
-| `WHISPER_BEST_OF`         | 2          | Best-of-N strategy for inference                    |
-| `WHISPER_BEAM_SIZE`       | -1         | Beam size for search                                |
-| `WHISPER_AUDIO_CTX`       | 0          | Audio context to use for inference                  |
-| `WHISPER_WORD_THOLD`      | 0.01       | Word threshold for segmentation                     |
-| `WHISPER_ENTROPY_THOLD`   | 2.40       | Entropy threshold for segmentation                  |
-| `WHISPER_LOGPROB_THOLD`   | -1.00      | Log probability threshold for segmentation          |
-| `WHISPER_LANGUAGE`        | en         | Language code to use for translation or diarization |
-| `WHISPER_PROMPT`          |            | Initial prompt                                      |
-| `WHISPER_DTW`             |            | Compute token-level timestamps                      |
-| `WHISPER_CONVERT`         | true       | Convert audio to WAV, requires ffmpeg on the server |
-| `WHISPER_SPLIT_ON_WORD`   | false      | Boolean flag to split output on words               |
-| `WHISPER_DEBUG_MODE`      | false      | Enable debug mode                                   |
-| `WHISPER_TRANSLATE`       | false      | Translate from source language to english           |
-| `WHISPER_DIARIZE`         | false      | Stereo audio diarization                            |
-| `WHISPER_TINYDIARIZE`     | false      | Enable tinydiarize (requires a tdrz model)          |
-| `WHISPER_NO_FALLBACK`     | false      | Do not use temperature fallback while decoding      |
-| `WHISPER_PRINT_SPECIAL`   | false      | Print special tokens                                |
-| `WHISPER_PRINT_COLORS`    | false      | Print colors                                        |
-| `WHISPER_PRINT_REALTIME`  | false      | Print output in realtime                            |
-| `WHISPER_PRINT_PROGRESS`  | false      | Print progress                                      |
-| `WHISPER_NO_TIMESTAMPS`   | false      | Do not print timestamps                             |
-| `WHISPER_DETECT_LANGUAGE` | false      | Exit after automatically detecting language         |
+| Name                      | Default    | Description                                            |
+|---------------------------|------------|--------------------------------------------------------|
+| `WHISPER_THREADS`         | 4          | Количество потоков для инференса                       |
+| `WHISPER_PROCESSORS`      | 1          | Количество процессоров для инференса                   |
+| `WHISPER_HOST`            | 0.0.0.0    | IP-адрес или имя хоста для привязки сервера            |
+| `WHISPER_PORT`            | 9000       | Номер порта для прослушивания                          |
+| `WHISPER_INFERENCE_PATH`  | /inference | Путь для всех запросов инференса                       |
+| `WHISPER_PUBLIC_PATH`     |            | Путь к публичной папке                                 |
+| `WHISPER_REQUEST_PATH`    |            | Путь для всех запросов                                 |
+| `WHISPER_OV_E_DEVICE`     | CPU        | Устройство OpenViBE для обработки событий              |
+| `WHISPER_OFFSET_T`        | 0          | Временное смещение в миллисекундах                     |
+| `WHISPER_OFFSET_N`        | 0          | Количество секунд для смещения                         |
+| `WHISPER_DURATION`        | 0          | Длительность аудиофайла в миллисекундах                |
+| `WHISPER_MAX_CONTEXT`     | -1         | Максимальный размер контекста для инференса            |
+| `WHISPER_MAX_LEN`         | 0          | Максимальная длина выходного текста                    |
+| `WHISPER_BEST_OF`         | 2          | Стратегия "лучший из N" для инференса                  |
+| `WHISPER_BEAM_SIZE`       | -1         | Размер beam для поиска                                 |
+| `WHISPER_AUDIO_CTX`       | 0          | Аудиоконтекст для инференса                            |
+| `WHISPER_WORD_THOLD`      | 0.01       | Порог слов для сегментации                             |
+| `WHISPER_ENTROPY_THOLD`   | 2.40       | Порог энтропии для сегментации                         |
+| `WHISPER_LOGPROB_THOLD`   | -1.00      | Порог логарифма вероятности для сегментации            |
+| `WHISPER_LANGUAGE`        | en         | Код языка для перевода или диаризации                  |
+| `WHISPER_PROMPT`          |            | Начальный промт                                        |
+| `WHISPER_DTW`             |            | Вычислять временные метки на уровне токенов            |
+| `WHISPER_CONVERT`         | true       | Конвертировать аудио в WAV, требует ffmpeg на сервере  |
+| `WHISPER_SPLIT_ON_WORD`   | false      | Разделить по слову, а не по токену                     |
+| `WHISPER_DEBUG_MODE`      | false      | Включить режим отладки                                 |
+| `WHISPER_TRANSLATE`       | false      | Перевод с исходного языка на английский                |
+| `WHISPER_DIARIZE`         | false      | Диаризация стерео аудио                                |
+| `WHISPER_TINYDIARIZE`     | false      | Включить tinydiarize (требует модель tdrz)             |
+| `WHISPER_NO_FALLBACK`     | false      | Не использовать temperature fallback при декодировании |
+| `WHISPER_PRINT_SPECIAL`   | false      | Печатать специальные токены                            |
+| `WHISPER_PRINT_COLORS`    | false      | Печатать цвета                                         |
+| `WHISPER_PRINT_REALTIME`  | false      | Печатать вывод в реальном времени                      |
+| `WHISPER_PRINT_PROGRESS`  | false      | Печатать прогресс                                      |
+| `WHISPER_NO_TIMESTAMPS`   | false      | Не печатать временные метки                            |
+| `WHISPER_DETECT_LANGUAGE` | false      | Выйти после автоматического определения языка          |
 
 </details>
 
-## Links
+## Ссылки
 
 - [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
-- [server example](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) of whisper.cpp
+- [пример сервера](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) whisper.cpp
