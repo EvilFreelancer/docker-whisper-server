@@ -12,7 +12,7 @@
     }
   ],
   "paths": {
-    "/transcribe": {
+    "/inference": {
       "post": {
         "summary": "Transcribe audio file",
         "description": "Uploads an audio file and returns the transcription.",
