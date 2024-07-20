@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Default values
+# Model defaults
 WHISPER_MODEL=${WHISPER_MODEL:-"base.en"}
 WHISPER_MODEL_PATH=${WHISPER_MODEL_PATH:-"/app/models/ggml-${WHISPER_MODEL}.bin"}
+WHISPER_MODEL_QUANTIZATION=${WHISPER_MODEL_QUANTIZATION:-""}
+
+# System defaults
 WHISPER_HOST=${WHISPER_HOST:-"0.0.0.0"}
 WHISPER_PORT=${WHISPER_PORT:-"9000"}
 WHISPER_REQUEST_PATH=${WHISPER_REQUEST_PATH:-""}
@@ -11,6 +14,25 @@ WHISPER_INFERENCE_PATH=${WHISPER_INFERENCE_PATH:-"/transcribe"}
 WHISPER_CONVERT=${WHISPER_CONVERT:-"true"}
 WHISPER_THREADS=${WHISPER_THREADS:-"4"}
 WHISPER_PROCESSORS=${WHISPER_PROCESSORS:-"1"}
+
+# Detect quantization type and convert tp text if number has been provided
+validate_quantization_type() {
+    case $1 in
+        10) echo "q2_k" ;;
+        11) echo "q3_k" ;;
+        2)  echo "q4_0" ;;
+        3)  echo "q4_1" ;;
+        12) echo "q4_k" ;;
+        8)  echo "q5_0" ;;
+        9)  echo "q5_1" ;;
+        13) echo "q5_k" ;;
+        14) echo "q6_k" ;;
+        7)  echo "q8_0" ;;
+        q2_k | q3_k | q4_0 | q4_1 | q4_k | q5_0 | q5_1 | q5_k | q6_k | q8_0)
+            echo "$1" ;;
+        *)  echo "Invalid type" ;;
+    esac
+}
 
 # Function to convert boolean-like strings to bash true/false
 to_boolean() {
@@ -25,6 +47,29 @@ if [ ! -f "$WHISPER_MODEL_PATH" ]; then
   echo "Model not found at $WHISPER_MODEL_PATH. Downloading model..."
   [ ! -f "/app/models/download-ggml-model.sh" ] && cp -v /app/download-ggml-model.sh /app/models/
   bash /app/models/download-ggml-model.sh "$WHISPER_MODEL"
+fi
+
+# If quantization level is set
+if [ -n "$WHISPER_MODEL_QUANTIZATION" ]; then
+  QUANTIZATION_TYPE=$(validate_quantization_type "$WHISPER_MODEL_QUANTIZATION")
+
+  # Break if quantization type is not valid
+  if [ "$QUANTIZATION_TYPE" == "Invalid type" ]; then
+    echo "Invalid quantization type provided: $WHISPER_MODEL_QUANTIZATION"
+    exit 1
+  fi
+
+  # Generate quantization type
+  QUANTIZED_MODEL_PATH="/app/models/ggml-${WHISPER_MODEL}-${QUANTIZATION_TYPE}.bin"
+
+  # Check if file of quantized model is already exists
+  if [ ! -f "$QUANTIZED_MODEL_PATH" ]; then
+    echo "Quantized model not found at $QUANTIZED_MODEL_PATH. Quantizing model..."
+    /app/quantize "$WHISPER_MODEL_PATH" "$QUANTIZED_MODEL_PATH" "$QUANTIZATION_TYPE"
+  fi
+
+  # Replace path from default model to quantized version
+  WHISPER_MODEL_PATH="$QUANTIZED_MODEL_PATH"
 fi
 
 # Construct the command with the options
@@ -58,20 +103,20 @@ CMD+=" --model $WHISPER_MODEL_PATH"
 [ -n "$WHISPER_REQUEST_PATH" ]    && CMD+=" --request-path $WHISPER_REQUEST_PATH"
 
 # Boolean flags
-[ "$(to_boolean "$WHISPER_SPLIT_ON_WORD")" = "true" ]   && CMD+=" --split-on-word"
-[ "$(to_boolean "$WHISPER_DEBUG_MODE")" = "true" ]      && CMD+=" --debug-mode"
-[ "$(to_boolean "$WHISPER_TRANSLATE")" = "true" ]       && CMD+=" --translate"
-[ "$(to_boolean "$WHISPER_DIARIZE")" = "true" ]         && CMD+=" --diarize"
-[ "$(to_boolean "$WHISPER_TINYDIARIZE")" = "true" ]     && CMD+=" --tinydiarize"
-[ "$(to_boolean "$WHISPER_NO_FALLBACK")" = "true" ]     && CMD+=" --no-fallback"
-[ "$(to_boolean "$WHISPER_PRINT_SPECIAL")" = "true" ]   && CMD+=" --print-special"
-[ "$(to_boolean "$WHISPER_PRINT_COLORS")" = "true" ]    && CMD+=" --print-colors"
-[ "$(to_boolean "$WHISPER_PRINT_REALTIME")" = "true" ]  && CMD+=" --print-realtime"
-[ "$(to_boolean "$WHISPER_PRINT_PROGRESS")" = "true" ]  && CMD+=" --print-progress"
-[ "$(to_boolean "$WHISPER_NO_TIMESTAMPS")" = "true" ]   && CMD+=" --no-timestamps"
-[ "$(to_boolean "$WHISPER_DETECT_LANGUAGE")" = "true" ] && CMD+=" --detect-language"
-[ "$(to_boolean "$WHISPER_CONVERT")" = "true" ]         && CMD+=" --convert"
+[ "true" = "$(to_boolean "$WHISPER_SPLIT_ON_WORD")" ]   && CMD+=" --split-on-word"
+[ "true" = "$(to_boolean "$WHISPER_DEBUG_MODE")" ]      && CMD+=" --debug-mode"
+[ "true" = "$(to_boolean "$WHISPER_TRANSLATE")" ]       && CMD+=" --translate"
+[ "true" = "$(to_boolean "$WHISPER_DIARIZE")" ]         && CMD+=" --diarize"
+[ "true" = "$(to_boolean "$WHISPER_TINYDIARIZE")" ]     && CMD+=" --tinydiarize"
+[ "true" = "$(to_boolean "$WHISPER_NO_FALLBACK")" ]     && CMD+=" --no-fallback"
+[ "true" = "$(to_boolean "$WHISPER_PRINT_SPECIAL")" ]   && CMD+=" --print-special"
+[ "true" = "$(to_boolean "$WHISPER_PRINT_COLORS")" ]    && CMD+=" --print-colors"
+[ "true" = "$(to_boolean "$WHISPER_PRINT_REALTIME")" ]  && CMD+=" --print-realtime"
+[ "true" = "$(to_boolean "$WHISPER_PRINT_PROGRESS")" ]  && CMD+=" --print-progress"
+[ "true" = "$(to_boolean "$WHISPER_NO_TIMESTAMPS")" ]   && CMD+=" --no-timestamps"
+[ "true" = "$(to_boolean "$WHISPER_DETECT_LANGUAGE")" ] && CMD+=" --detect-language"
+[ "true" = "$(to_boolean "$WHISPER_CONVERT")" ]         && CMD+=" --convert"
 
 # Execute the command
-echo "Executing command: $CMD"
+echo && echo "Executing command: $CMD" && echo
 exec $CMD
