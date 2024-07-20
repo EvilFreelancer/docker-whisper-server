@@ -106,7 +106,7 @@ curl 127.0.0.1:9000/load \
 | `WHISPER_PROCESSORS`      | 1           | Number of processors to use for inference           |
 | `WHISPER_HOST`            | 0.0.0.0     | Host IP or hostname to bind the server to           |
 | `WHISPER_PORT`            | 9000        | Port number to listen on                            |
-| `WHISPER_INFERENCE_PATH`  | /transcribe | Path to load inference models from                  |
+| `WHISPER_INFERENCE_PATH`  | /inference  | Path to load inference models from                  |
 | `WHISPER_PUBLIC_PATH`     |             | Path to the public folder                           |
 | `WHISPER_REQUEST_PATH`    |             | Request path for all requests                       |
 | `WHISPER_OV_E_DEVICE`     | CPU         | OpenViBE Event Device to use                        |
