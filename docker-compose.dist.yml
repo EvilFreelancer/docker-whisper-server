@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+
+  whisper:
+    build:
+      context: ./whisper
+      #args:
+      # - WHISPER_VERSION=master
+    volumes:
+      - ./models:/app/models
+    ports:
+      - "127.0.0.1:9000:9000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  swagger:
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./whisper/openapi.json:/openapi.json
+    environment:
+      SWAGGER_JSON: /openapi.json
