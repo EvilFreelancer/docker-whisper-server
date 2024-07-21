@@ -1,36 +1,43 @@
 # Whisper.cpp API Webserver in Docker
 
-Whisper.cpp HTTP 语音转录服务器，类似 OpenAI 的 API，运行在 Docker 中。
+Whisper.cpp HTTP 服务器，用于自动语音识别 (ASR)，API 类似于 OpenAI 的接口，运行在 Docker 容器中。
 
-该项目包含一组工具和配置，用于构建基于 [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server)
-的 Docker 容器转录服务器。
+该项目包含构建带有基于 [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) 的转录服务器的
+Docker 容器的工具和配置。
 
 [Русский](./README.md) | **中文** | [English](./README.en.md)
 
 ## 功能
 
-- Docker 容器化的 Whisper.cpp HTTP 语音转录服务器
-- 通过环境变量进行配置
+- 包含 Whisper.cpp 转录 HTTP 服务器的 Docker 容器
+- 可通过环境变量进行配置
 - 自动将音频转换为 WAV 格式
-- 启动时自动下载所需的模型
-- 启动时可以将任何 Whisper 模型量化到所需类型
+- 启动时自动下载所选模型（如果不存在）
+- 启动时可量化任意 Whisper 模型到所需级别
 
 ## 要求
 
-在开始之前，请确保您的机器上安装了支持现代 CUDA 的 GPU，由于 Docker 镜像的计算需求较高。
+Docker 容器分两阶段构建，首先是使用基础镜像 `nvidia/cuda:12.5.1-devel-ubuntu22.04`，在其中编译 `server` 和 `quantize`
+二进制文件，然后在第二阶段使用镜像 `nvidia/cuda:12.5.1-runtime-ubuntu22.04`，在其中安装必要的包并复制在第一阶段编译的二进制文件。
 
-* Nvidia GPU
-* CUDA
+理论上，如果将 `nvidia/cuda` 镜像版本降到 `12.1`，应该不会有问题，但尚未测试。
+
+因此，在开始之前，请确保您的系统中安装了支持现代 CUDA 的 GPU，并且已安装最新的 CUDA 驱动程序。
+
+因此，项目运行需要：
+
+* Nvidia 显卡 >= GTX 10xx（或同等）
+* CUDA >= 12.5（可能 12.1 也可以）
 * Docker
 * Docker Compose
 * Nvidia Docker Runtime
 
-有关如何准备运行神经网络的 Linux 机器的详细说明，包括 CUDA、Docker 和 Nvidia Docker Runtime
-的安装，请参考我的文章 "[如何准备 Linux 以运行和训练神经网络？（包括 Docker）](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)"。
+有关如何准备 Linux 机器以运行神经网络，包括安装 CUDA、Docker 和 Nvidia Docker Runtime
+的详细说明，请参阅我的文章 "[如何准备 Linux 以运行和训练神经网络？（包括 Docker）](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)"。
 
 ## 安装
 
-1. 克隆代码库，然后进入源代码根目录：
+1. 克隆仓库，然后进入源码根目录：
 
     ```shell
     git clone https://github.com/EvilFreelancer/docker-whisper-server.git
@@ -43,7 +50,37 @@ Whisper.cpp HTTP 语音转录服务器，类似 OpenAI 的 API，运行在 Docke
     cp docker-compose.dist.yml docker-compose.yml
     ```
 
-   在配置文件中，您可以配置环境变量、whisper.cpp 版本、端口、挂载卷等。
+   在配置中，您可以设置环境变量、whisper.cpp 的版本、端口、挂载的卷等。
+
+   例如，可以从 `master` 分支构建服务器，并在运行时使用量化到 `q4_0` 的 `base` 模型，在 `1` 个处理器和 `4` 个线程上运行。
+
+   ```yaml
+   version: "3.9"
+   services:
+     restart: "unless-stopped"
+     whisper:
+       build:
+         context: ./whisper
+         args:
+           # 版本可以是：tag、分支或提交哈希
+           - WHISPER_VERSION=master
+       volumes:
+         - ./models:/app/models
+       ports:
+         - "127.0.0.1:9000:9000"
+       environment:
+         WHISPER_MODEL: base
+         WHISPER_MODEL_QUANTIZATION: q4_0
+         WHISPER_PROCESSORS: 1
+         WHISPER_THREADS: 4
+       deploy:
+         resources:
+           reservations:
+             devices:
+               - driver: nvidia
+                 count: 1
+                 capabilities: [ gpu ]
+   ```
 
 3. 构建 Docker 镜像：
 
@@ -51,7 +88,7 @@ Whisper.cpp HTTP 语音转录服务器，类似 OpenAI 的 API，运行在 Docke
     docker-compose build
     ```
 
-4. 启动服务：
+4. 启动 Docker 容器：
 
    ```shell
    docker-compose up -d
@@ -71,10 +108,13 @@ Whisper.cpp HTTP 语音转录服务器，类似 OpenAI 的 API，运行在 Docke
 curl 127.0.0.1:9000/inference \
   -H "Content-Type: multipart/form-data" \
   -F file="@<file-path>" \
-  -F temperature="0.0" \
-  -F temperature_inc="0.2" \
+  -F language="auto" \
   -F response_format="json"
 ```
+
+可以将 `language="auto"`（自动检测音频语言）替换为所需的语言，例如 `language="zh"`。
+
+可以将 `response_format="json"` 替换为请求系统返回字幕 `response_format="srt"` 或纯文本 `response_format="text"`。
 
 ### /load
 
