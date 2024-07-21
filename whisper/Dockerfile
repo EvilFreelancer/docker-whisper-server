@@ -3,7 +3,8 @@ WORKDIR /app
 
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 # It may be name of branch, tag or commit hash
-ARG WHISPER_VERSION="v1.6.2"
+#ARG WHISPER_VERSION="v1.6.3"  # TODO: When it will be released
+ARG WHISPER_VERSION="master"
 
 # To get latest tag use this:
 # git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Model defaults
-WHISPER_MODEL=${WHISPER_MODEL:-"base.en"}
+WHISPER_MODEL=${WHISPER_MODEL:-"base"}
 DEFAULT_MODEL_PATH="/app/models/ggml-${WHISPER_MODEL}.bin"
 WHISPER_MODEL_PATH=${WHISPER_MODEL_PATH:-$DEFAULT_MODEL_PATH}
 WHISPER_MODEL_QUANTIZATION=${WHISPER_MODEL_QUANTIZATION:-""}
@@ -63,17 +63,14 @@ if [ -n "$WHISPER_MODEL_QUANTIZATION" ]; then
   # Generate quantization type
   QUANTIZED_MODEL_PATH="/app/models/ggml-${WHISPER_MODEL}-${QUANTIZATION_TYPE}.bin"
 
-  # If path to model is default then we may use quantized model
-  if [ "x$QUANTIZED_MODEL_PATH" == "x$DEFAULT_MODEL_PATH" ]; then
-    # Check if file of quantized model is already exists
-    if [ ! -f "$QUANTIZED_MODEL_PATH" ]; then
-      echo "Quantized model not found at $QUANTIZED_MODEL_PATH. Quantizing model..."
-      /app/quantize "$WHISPER_MODEL_PATH" "$QUANTIZED_MODEL_PATH" "$QUANTIZATION_TYPE"
-    fi
-
-    # Replace path from default model to quantized version
-    WHISPER_MODEL_PATH="$QUANTIZED_MODEL_PATH"
+  # Check if file of quantized model is already exists
+  if [ ! -f "$QUANTIZED_MODEL_PATH" ]; then
+    echo "Quantized model not found at $QUANTIZED_MODEL_PATH. Quantizing model..."
+    /app/quantize "$WHISPER_MODEL_PATH" "$QUANTIZED_MODEL_PATH" "$QUANTIZATION_TYPE"
   fi
+
+  # Replace path from default model to quantized version
+  WHISPER_MODEL_PATH="$QUANTIZED_MODEL_PATH"
 fi
 
 # Construct the command with the options

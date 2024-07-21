@@ -3,14 +3,21 @@ version: "3.9"
 services:
 
   whisper:
+    restart: "unless-stopped"
     build:
       context: ./whisper
-      #args:
-      # - WHISPER_VERSION=master
+      args:
+        # В качестве версии можно указать: тег, ветку или коммит
+        - WHISPER_VERSION=master
     volumes:
       - ./models:/app/models
     ports:
       - "127.0.0.1:9000:9000"
+    environment:
+       WHISPER_MODEL: base
+       # WHISPER_MODEL_QUANTIZATION: q4_0
+       # WHISPER_PROCESSORS: 1
+       # WHISPER_THREADS: 4
     deploy:
       resources:
         reservations:
@@ -20,6 +27,7 @@ services:
               capabilities: [ gpu ]
 
   swagger:
+    restart: "unless-stopped"
     image: swaggerapi/swagger-ui:v5.17.14
     ports:
       - "127.0.0.1:8080:8080"
