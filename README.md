@@ -112,10 +112,13 @@ Runtime в моей
 curl 127.0.0.1:9000/inference \
   -H "Content-Type: multipart/form-data" \
   -F file="@<file-path>" \
-  -F temperature="0.0" \
-  -F temperature_inc="0.2" \
+  -F language="auto" \
   -F response_format="json"
 ```
+
+Вместо `language="auto"` (автоопределние ялыка аудио) вы можете явно передать нужный, например `language="ru"`.
+
+Вместо `response_format="json"` можно попросить систему вернуть субтитры `response_format="srt"` или просто текст `response_format="text"`.
 
 ### /load
 
