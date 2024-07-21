@@ -37,8 +37,8 @@ CUDA.
 * Nvidia Docker Runtime
 
 Подробную инструкцию по подготовке Linux-машины к запуску нейросетей, включая установку CUDA, Docker и Nvidia Docker
-Runtime в моей
-публикации "[Как подготовить Linux к запуску и обучению нейросетей? (+ Docker)](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)".
+Runtime вы сможете найти в моей публикации
+"[Как подготовить Linux к запуску и обучению нейросетей? (+ Docker)](https://dzen.ru/a/ZVt9kRBCTCGlQqyP)".
 
 ## Установка
 
