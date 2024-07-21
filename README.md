@@ -204,7 +204,7 @@ q6_k или 14
 q8_0 или 7
 ```
 
-В случае если передать целое число скрипт entrypoint.sh [автоматически](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36) преобразует его в соответствующую комбинация символов вида `qX_X`.
+В случае если передать целое число скрипт entrypoint.sh [автоматически](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36) преобразует его в соответствующую комбинацию символов вида `qX_X`.
 
 Подробнее о [квантизации](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization) в документации проекта whisper.cpp.
 
