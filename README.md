@@ -67,6 +67,7 @@ Runtime вы сможете найти в моей публикации
        build:
          context: ./whisper
          args:
+           # В качестве версии можно указать: тег, ветку или коммит
            - WHISPER_VERSION=master
        volumes:
          - ./models:/app/models
