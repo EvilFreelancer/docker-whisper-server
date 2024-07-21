@@ -63,6 +63,7 @@ Docker 容器分两阶段构建，首先是使用基础镜像 `nvidia/cuda:12.5.
          context: ./whisper
          args:
            # 版本可以是：tag、分支或提交哈希
+           # https://github.com/ggerganov/whisper.cpp
            - WHISPER_VERSION=master
        volumes:
          - ./models:/app/models
@@ -128,7 +129,7 @@ curl 127.0.0.1:9000/load \
 
 ## 环境变量
 
-### 基本配置
+**基本配置**
 
 | 名称                           | 默认值                                   | 描述                                   |
 |------------------------------|---------------------------------------|--------------------------------------|
@@ -138,7 +139,7 @@ curl 127.0.0.1:9000/load \
 
 <details>
 <summary>
-<i>高级配置</i>
+<i><b>高级配置</b></i>
 </summary>
 
 | 名称                        | 默认值        | 描述                         |
@@ -180,6 +181,27 @@ curl 127.0.0.1:9000/load \
 | `WHISPER_DETECT_LANGUAGE` | false      | 自动检测语言后退出                  |
 
 </details>
+
+## 量化
+
+通过变量 `WHISPER_MODEL_QUANTIZATION` 可用的量化等级：
+
+```text
+q2_k 或 10
+q3_k 或 11
+q4_0 或 2
+q4_1 或 3
+q4_k 或 12
+q5_0 或 8
+q5_1 或 9
+q5_k 或 13
+q6_k 或 14
+q8_0 或 7
+```
+
+如果传递一个整数，脚本 `entrypoint.sh` 会[自动](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36)将其转换为相应的字符组合形式 `qX_X`。
+
+有关更多量化信息，请参阅 whisper.cpp 项目文档中的[量化](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization)。
 
 ## 链接
 

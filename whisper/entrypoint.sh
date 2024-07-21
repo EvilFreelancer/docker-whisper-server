@@ -16,7 +16,7 @@ WHISPER_CONVERT=${WHISPER_CONVERT:-"true"}
 WHISPER_THREADS=${WHISPER_THREADS:-"4"}
 WHISPER_PROCESSORS=${WHISPER_PROCESSORS:-"1"}
 
-# Detect quantization type and convert tp text if number has been provided
+# Detect quantization type and convert to text if number has been provided
 validate_quantization_type() {
     case $1 in
         10) echo "q2_k" ;;

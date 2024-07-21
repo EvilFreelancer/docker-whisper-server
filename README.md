@@ -4,7 +4,7 @@ Whisper.cpp HTTP-сервер для автоматического распоз
 
 Этот проект содержит в себе набор инструментов и конфигураций для сборки
 Docker-контейнера с сервером транскрипции, основанным
-на [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
+на [whisper.cpp server](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
 **Русский** | [中文](./README.zh.md) | [English](./README.en.md)
 
@@ -14,7 +14,7 @@ Docker-контейнера с сервером транскрипции, осн
 - Настраивается через переменные окружения
 - Автоматически конвертирует аудио в формат WAV
 - Автоматически скачивает выбранную модель при запуске (если её нет)
-- Может квантовать любую модель Whisper до нужного уровнял при запуске
+- Может квантовать любую модель Whisper до нужного уровня при запуске
 
 ## Требования
 
@@ -68,6 +68,7 @@ Runtime вы сможете найти в моей публикации
          context: ./whisper
          args:
            # В качестве версии можно указать: тег, ветку или коммит
+           # https://github.com/ggerganov/whisper.cpp
            - WHISPER_VERSION=master
        volumes:
          - ./models:/app/models
@@ -133,17 +134,17 @@ curl 127.0.0.1:9000/load \
 
 ## Переменные окружения
 
-### Базовая конфигурация
+**Базовая конфигурация**
 
-| Name                         | Default                               | Description                                                                   |
-|------------------------------|---------------------------------------|-------------------------------------------------------------------------------|
-| `WHISPER_MODEL`              | base.en                               | Модель Whisper, используемая по умолчанию                                     |
-| `WHISPER_MODEL_PATH`         | /app/models/ggml-${WHISPER_MODEL}.bin | Путь к файлу модели Whisper по умолчанию                                      |
-| `WHISPER_MODEL_QUANTIZATION` |                                       | Уровень квантования (применяется только если `WHISPER_MODEL_PATH` не изменен) |
+| Name                         | Default                               | Description                                                                                                                 |
+|------------------------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `WHISPER_MODEL`              | base                                  | Модель Whisper, используемая по умолчанию                                                                                   |
+| `WHISPER_MODEL_PATH`         | /app/models/ggml-${WHISPER_MODEL}.bin | Путь к файлу модели Whisper по умолчанию                                                                                    |
+| `WHISPER_MODEL_QUANTIZATION` |                                       | Уровень квантования ([подробнее тут](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization)) |
 
 <details>
 <summary>
-<i>Расширенная конфигурация</i>
+<i><b>Расширенная конфигурация</b></i>
 </summary>
 
 | Name                      | Default    | Description                                            |
@@ -185,6 +186,27 @@ curl 127.0.0.1:9000/load \
 | `WHISPER_DETECT_LANGUAGE` | false      | Выйти после автоматического определения языка          |
 
 </details>
+
+## Квантизация
+
+Доступные уровни квантования которые можно указать через переменную `WHISPER_MODEL_QUANTIZATION`:
+
+```text
+q2_k или 10
+q3_k или 11
+q4_0 или 2
+q4_1 или 3
+q4_k или 12
+q5_0 или 8
+q5_1 или 9
+q5_k или 13
+q6_k или 14
+q8_0 или 7
+```
+
+В влучае если передать целое число скрипт entrypoint.sh [автоматически](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36) преобразует его в соответствующую комбинация символов вида `qX_X`.
+
+Подробнее о [квантизации](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization) в документации проекта whisper.cpp.
 
 ## Ссылки
 
