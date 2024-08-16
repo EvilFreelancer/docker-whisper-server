@@ -1,0 +1,8 @@
+models:
+  base:
+    - http://whisper:9000/inference
+  #large-v2:
+  #  - http://whisper01:9000/inference
+  #  - http://whisper02:9000/inference
+  #large-v3:
+  #  - http://whisper03:9000/inference

@@ -1,4 +1,7 @@
 /.idea/
+/venv/
 /audios/
 /models/
+/config.yml
 /docker-compose.yml
+__pycache__
