@@ -427,6 +427,10 @@ OpenAI-like API
 - https://platform.openai.com/docs/api-reference/models/list
 - https://platform.openai.com/docs/api-reference/models/retrieve
 
+## Лицензия
+
+Этот проект лицензирован на условиях лицензии MIT. Подробности в файле [LICENSE](./LICENSE).
+
 ## Цитирование
 
 Если вы используете этот проект в своих исследованиях или работе, пожалуйста, укажите ссылку на него следующим образом:
