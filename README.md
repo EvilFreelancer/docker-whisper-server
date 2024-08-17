@@ -135,7 +135,7 @@ Runtime вы сможете найти в моей публикации
 ```shell
 curl http://localhost:9000/inference \
   -H "Content-Type: multipart/form-data" \
-  -F file="@<file-path>" \
+  -F file="@./assets/audio.mp3" \
   -F language="auto" \
   -F response_format="json"
 ```
@@ -321,7 +321,7 @@ curl http://localhost:5000/audio/transcriptions \
   -H "Content-Type: multipart/form-data" \
   -F file="@./assets/audio.mp3" \
   -F model="base" \
-  -F language="ru" \
+  -F language="auto" \
   -F response_format="json"
 ```
 

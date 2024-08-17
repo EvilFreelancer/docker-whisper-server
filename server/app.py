@@ -122,8 +122,8 @@ def transcriptions(language: str = None, response_format: str = None):
         # Send POST request to the chosen server with uploaded file and data
         _log.info({"uuid": request_id, "name": "transcriptions", "type": "request",
                    'timestamp': int(datetime.utcnow().timestamp()),
-                   "endpoint": endpoint, "model": model, "data": data})
-        response = session.post(url=endpoint, files={'file': file}, data=data)
+                   "endpoint": endpoint['base_url'], "model": model, "data": data})
+        response = session.post(url=endpoint['base_url'], files={'file': file}, data=data)
 
         # Send response
         _log.debug({"uuid": request_id, "name": "transcriptions", "type": "response",
