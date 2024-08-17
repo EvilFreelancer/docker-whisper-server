@@ -18,25 +18,26 @@ x-shared-deploy: &shared-deploy
 
 services:
 
-  #server:
-  #  restart: "unless-stopped"
-  #  build:
-  #    context: ./server
-  #  volumes:
-  #    - ./config.yml/app/config.yml
-  #  ports:
-  #    - "127.0.0.1:5000:5000"
+  server:
+    restart: "unless-stopped"
+    build:
+      context: ./server
+    volumes:
+      - ./config.yml/app/config.yaml
+    ports:
+      - "127.0.0.1:5000:5000"
+    <<: *shared-logs
 
-  #server-swagger:
-  #  restart: "unless-stopped"
-  #  image: swaggerapi/swagger-ui:v5.17.14
-  #  ports:
-  #    - "127.0.0.1:5010:8080"
-  #  volumes:
-  #    - ./server/openapi.yaml:/openapi.yaml
-  #  environment:
-  #    SWAGGER_JSON: /openapi.yaml
-  #  <<: *shared-logs
+  server-swagger:
+    restart: "unless-stopped"
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:5010:8080"
+    volumes:
+      - ./server/openapi.yaml:/openapi.yaml
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+    <<: *shared-logs
 
   whisper:
     restart: "unless-stopped"

@@ -8,17 +8,24 @@ Docker-контейнера с сервером транскрипции, осн
 
 **Русский** | [中文](./README.zh.md) | [English](./README.en.md)
 
-## Возможности
+## Содержание
 
-- Docker-контейнер с HTTP-сервером транскрипции Whisper.cpp
-- Настраивается через переменные окружения
-- Автоматически конвертирует аудио в формат WAV
-- Автоматически скачивает выбранную модель при запуске (если её нет)
-- Может квантовать любую модель Whisper до нужного уровня при запуске
+* [Требования](#Требования)
+* [Установка](#Установка)
+* [Whisper.cpp API-сервер](#Whisper.cpp-API-сервер)
+    * [Эндпоинты](#Эндпоинты)
+    * [Переменные окружения](#Переменные-окружения)
+    * [Квантизация](#Квантизация)
+    * [Swagger документация](#Swagger-документация)
+* [OpenAI-like API сервер](#OpenAI-like-API-сервер)
+    * [Пример конфигурации](#Пример-конфигурации)
+    * [Эндпоинты](#Эндпоинты)
+    * [Swagger документация](#Swagger-документация)
+* [Ссылки](#Ссылки)
 
 ## Требования
 
-Docker-контейнер собирается в две стадии, сначала берётся базовый
+Docker-контейнер для Whisper.cpp собирается в две стадии, сначала берётся базовый
 образ `nvidia/cuda:12.5.1-devel-ubuntu22.04`, в нём происходит компиляция бинарников `server` и `quantize`, далее на
 второй стадии используется контейнер `nvidia/cuda:12.5.1-runtime-ubuntu22.04`, в него доустанавливаются нужные пакеты и
 копируются бинарные файлы собранные на предыдущем этапе.
@@ -54,64 +61,60 @@ Runtime вы сможете найти в моей публикации
    cp docker-compose.dist.yml docker-compose.yml
    ```
 
-   В конфигурации вы можете настроить переменные окружения, версию whisper.cpp, порты, подключаемы тома и так далее.
+3. Скопируем конфигурацию OpenAI-like API сервера:
 
-   Например, вот так можно собрать сервер из ветки `master` и при работе использовать модель `base`, которая
-   будет квантизирована до `q4_0` и запущена на `1` ядре процессора в `4` потока.
-
-   ```yaml
-   version: "3.9"
-   services:
-     restart: "unless-stopped"
-     whisper:
-       build:
-         context: ./whisper
-         args:
-           # В качестве версии можно указать: тег, ветку или коммит
-           # https://github.com/ggerganov/whisper.cpp
-           - WHISPER_VERSION=master
-       volumes:
-         - ./models:/app/models
-       ports:
-         - "127.0.0.1:9000:9000"
-       environment:
-         WHISPER_MODEL: base
-         WHISPER_MODEL_QUANTIZATION: q4_0
-         WHISPER_PROCESSORS: 1
-         WHISPER_THREADS: 4
-       deploy:
-         resources:
-           reservations:
-             devices:
-               - driver: nvidia
-                 count: 1
-                 capabilities: [ gpu ]
+   ```shell
+   cp config.dist.yml config.yml
    ```
 
-3. Соберём Docker-образ:
+4. Соберём Docker-образы:
 
    ```shell
    docker-compose build
    ```
 
-4. Запустим Docker-контейнер:
+5. Запустим Docker-контейнеры:
 
    ```shell
    docker-compose up -d
    ```
 
-5. Перейдем по адресу http://localhost:8080 в браузере:
+## Whisper.cpp API-сервер
 
-   ![Swagger UI](./assets/swagger.png)
+В конфигурации `docker-compose.yml` вы можете настроить переменные окружения, версию whisper.cpp, порты, подключаемы
+тома и так далее.
 
-## Эндпоинты
+Например, вот так можно собрать сервер из ветки `master` и при работе использовать модель `base`, которая
+будет квантизирована до `q4_0` и запущена на `1` ядре процессора в `4` потока.
 
-### /inference
+```yaml
+  whisper:
+    restart: "unless-stopped"
+    build:
+      context: ./whisper
+      args:
+        # В качестве версии можно указать: тег, ветку или коммит
+        # https://github.com/ggerganov/whisper.cpp
+        - WHISPER_VERSION=master
+    volumes:
+      - ./models:/app/models
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      WHISPER_MODEL: base
+      WHISPER_MODEL_QUANTIZATION: q4_0
+      WHISPER_PROCESSORS: 1
+      WHISPER_THREADS: 4
+```
+
+### Эндпоинты
+
+#### /inference
 
 Транскрибируем аудиофайл:
 
 ```shell
-curl 127.0.0.1:9000/inference \
+curl http://localhost:9000/inference \
   -H "Content-Type: multipart/form-data" \
   -F file="@<file-path>" \
   -F language="auto" \
@@ -120,19 +123,20 @@ curl 127.0.0.1:9000/inference \
 
 Вместо `language="auto"` (автоопределение языка аудио) вы можете явно передать нужный, например `language="ru"`.
 
-Вместо `response_format="json"` можно попросить систему вернуть субтитры `response_format="srt"` или просто текст `response_format="text"`.
+Вместо `response_format="json"` можно попросить систему вернуть субтитры `response_format="srt"` или просто
+текст `response_format="text"`.
 
-### /load
+#### /load
 
 Сменить модель Whisper:
 
 ```shell
-curl 127.0.0.1:9000/load \
-   -H "Content-Type: multipart/form-data" \
-   -F model="<path-to-model-file-in-docker-container>"
+curl http://localhost:9000/load \
+  -H "Content-Type: multipart/form-data" \
+  -F model="<path-to-model-file-in-docker-container>"
 ```
 
-## Переменные окружения
+### Переменные окружения
 
 **Базовая конфигурация**
 
@@ -187,7 +191,7 @@ curl 127.0.0.1:9000/load \
 
 </details>
 
-## Квантизация
+### Квантизация
 
 Доступные уровни квантования которые можно указать через переменную `WHISPER_MODEL_QUANTIZATION`:
 
@@ -204,9 +208,91 @@ q6_k или 14
 q8_0 или 7
 ```
 
-В случае если передать целое число скрипт entrypoint.sh [автоматически](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36) преобразует его в соответствующую комбинацию символов вида `qX_X`.
+В случае если передать целое число скрипт
+entrypoint.sh [автоматически](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36)
+преобразует его в соответствующую комбинацию символов вида `qX_X`.
 
-Подробнее о [квантизации](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization) в документации проекта whisper.cpp.
+Подробнее о [квантизации](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization) в
+документации проекта whisper.cpp.
+
+### Swagger документация
+
+Сервис `whisper-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
+
+```yaml
+  whisper-swagger:
+    restart: "unless-stopped"
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:9010:8080"
+    volumes:
+      - ./whisper/openapi.yaml:/openapi.yaml
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+```
+
+После включения по адресу http://localhost:9010 будет доступен следующего вида интерфейс:
+
+![Swagger UI](./assets/whisper-swagger.png)
+
+## OpenAI-like API сервер
+
+Этот сервис представляет собой обёртку вокруг нескольких Whisper.cpp серверов, запущенных по сети. Он маршрутизирует
+запросы на сервер соответствующей модели.
+
+```yaml
+
+```
+
+### Пример конфигурации
+
+Конфигурация сервера и список доступных моделей настраивается в файле `config.yml`, по умолчанию имеет следующий вид:
+
+```yaml
+models:
+  base:
+    owned_by: organization-owner
+    endpoints:
+      - base_url: http://whisper:9000/inference
+  #tiny:
+  #  owned_by: organization-tiny-owner
+  #  endpoints:
+  #    - base_url: http://whisper01:9000/inference
+  #    - base_url: https://user:pass@remote-server:9000/inference
+```
+
+В конфигурации можно указать несколько моделей и серверов для каждой модели, в случае если модель доступна на нескольких
+адреса в момент запроса будет выбираться случайный сервер и запрос перенавится на него.
+
+### Эндпоинты
+
+#### /audio/transcriptions
+
+#### /audio/translations
+
+#### /models
+
+#### /models/{model}
+
+### Swagger документация
+
+Сервис `server-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
+
+```yaml
+  server-swagger:
+    restart: "unless-stopped"
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:5010:8080"
+    volumes:
+      - ./server/openapi.yaml:/openapi.yaml
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+```
+
+После включения по адресу http://localhost:5010 будет доступен следующего вида интерфейс:
+
+![Swagger UI](./assets/server-swagger.png)
 
 ## Ссылки
 
