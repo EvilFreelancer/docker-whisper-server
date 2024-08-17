@@ -415,5 +415,33 @@ curl http://localhost:5000/models/base
 
 ## Ссылки
 
-- [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
-- [пример сервера](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) whisper.cpp
+Whisper.cpp
+
+- https://github.com/ggerganov/whisper.cpp
+- https://github.com/ggerganov/whisper.cpp/tree/master/examples/server
+
+OpenAI-like API
+
+- https://platform.openai.com/docs/api-reference/audio/createTranscription
+- https://platform.openai.com/docs/api-reference/audio/createTranslation
+- https://platform.openai.com/docs/api-reference/models/list
+- https://platform.openai.com/docs/api-reference/models/retrieve
+
+## Цитирование
+
+Если вы используете этот проект в своих исследованиях или работе, пожалуйста, укажите ссылку на него следующим образом:
+
+```text
+[Pavel Rykov]. (2024). Whisper.cpp API Webserver in Docker. GitHub. https://github.com/EvilFreelancer/docker-whisper-server
+```
+
+Альтернатива в формате BibTeX:
+
+```text
+@misc{pavelrykov2024whisperapi,
+  author = {Pavel Rykov},
+  title  = {Whisper.cpp API Webserver in Docker},
+  year   = {2024},
+  url    = {https://github.com/EvilFreelancer/docker-whisper-server}
+}
+```
