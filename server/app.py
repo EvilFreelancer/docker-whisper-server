@@ -1,11 +1,13 @@
+import json
 import uuid
 from datetime import datetime
 import random
 import os
 import logging
 from requests import Session
-from utils import load_config, get_logger, get_models
+from utils import load_config, get_logger, get_models, get_model
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 
 _log = get_logger()
 
@@ -19,22 +21,38 @@ _log.info(f'API listening on port: {api_port}')
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max
 app.logger.setLevel(logging.INFO)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 config = load_config('config.yml')
 available_models = get_models(config)
+
+available_response_format = ['json', 'text', 'srt', 'verbose_json', 'vtt']
+response_format_mapping = {
+    'srt': 'text/plain',
+    'vtt': 'text/plain',
+    'text': 'text/plain',
+    'json': 'application/json',
+    'verbose_json': 'application/json',
+}
 
 
 @app.route('/')
 @app.route('/index')
-def index():
-    _log.info('Received a GET request to the root endpoint "/".')
-    return "test"
-
-
 @app.route('/models', methods=['GET'])
 def models():
     _log.debug('Received a GET request to retrieve available models.')
     result = {"object": "list", "data": available_models}
-    return jsonify(result), 200
+    return jsonify(result), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/models/<model>', methods=['GET'])
+def model(model: str):
+    _log.debug('Received a GET request to retrieve a model.')
+    result = get_model(config, model)
+    if result is None:
+        _log.error(message := 'No model found with provided id')
+        return jsonify({'message': message}), 404
+    return jsonify(result), 200, {'Content-Type': 'application/json'}
 
 
 @app.route('/audio/transcriptions', methods=['POST'], defaults={"response_format": "json"})
@@ -74,12 +92,12 @@ def transcriptions(language: str = None, response_format: str = None):
     if 'prompt' in request.form:
         _log.debug(f'prompt: {request.form["prompt"]}')
         data['prompt'] = request.form['prompt']
-    if 'response_format' in request.form:
-        _log.debug(f'response_format: {request.form["response_format"]}')
-        data['response_format'] = request.form['response_format']
     if response_format is not None:
         _log.debug(f'response_format: {response_format}')
         data['response_format'] = response_format
+    if 'response_format' in request.form:
+        _log.debug(f'response_format: {request.form["response_format"]}')
+        data['response_format'] = request.form['response_format']
     if 'temperature' in request.form:
         _log.debug(f'temperature: {request.form["temperature"]}')
         data['temperature'] = request.form['temperature']
@@ -111,7 +129,9 @@ def transcriptions(language: str = None, response_format: str = None):
         _log.debug({"uuid": request_id, "name": "transcriptions", "type": "response",
                     'timestamp': int(datetime.utcnow().timestamp()),
                     'status_code': response.status_code, 'content': response.content})
-        return response.content, response.status_code
+
+        content_type = response_format_mapping[response_format]
+        return response.content, response.status_code, {'Content-Type': content_type}
 
     except Exception as e:
         _log.exception(e)

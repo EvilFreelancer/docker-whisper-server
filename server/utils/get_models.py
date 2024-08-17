@@ -22,3 +22,22 @@ def get_models(config: object) -> list:
         }
         models.append(model_object)
     return models
+
+
+def get_model(config: object, model_name: str) -> object | None:
+    """
+    Get single a model by id.
+    :param config:
+    :return:
+    """
+    now = int(datetime.utcnow().timestamp())
+    models = config['models'].keys()
+    if model_name not in models:
+        return None
+    value = config['models'][model_name]
+    return {
+        "id": model_name,
+        "object": "model",
+        "created": value.get('created', now),
+        "owned_by": value.get('owned_by', MODELS_OWNED_BY),
+    }

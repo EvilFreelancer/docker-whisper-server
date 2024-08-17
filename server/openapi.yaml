@@ -1,0 +1,195 @@
+openapi: "3.0.2"
+
+info:
+  title: "API-server documentation"
+  description: "This is a sample API documentation for a OpenAI-like server."
+  version: "1.0.0"
+
+servers:
+  - url: "http://localhost:5000"
+    description: "Instance of OpenAI-like API-server"
+
+paths:
+
+  /audio/transcriptions:
+    post:
+      operationId: "createTranscription"
+      tags: [ "Audio" ]
+      summary: "Create transcription"
+      description: "Transcribes audio into the input language."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              additionalProperties: false
+              properties:
+                file:
+                  description: "The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.\n"
+                  type: "string"
+                  x-oaiTypeLabel: "file"
+                  format: "binary"
+                model:
+                  description: "ID of the model to use.\n"
+                  type: "string"
+                  example: "base"
+                language:
+                  description: "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will improve accuracy and latency.\n"
+                  type: "string"
+                  default: ''
+                prompt:
+                  description: "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.\n"
+                  type: "string"
+                  default: ''
+                response_format:
+                  description: "The format of the transcript output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.\n"
+                  type: "string"
+                  enum: [ "json", "text", "srt", "verbose_json", "vtt" ]
+                  default: "json"
+                temperature:
+                  description: "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.\n"
+                  type: "number"
+                  default: 0
+                timestamp_granularities[]:
+                  description: "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n"
+                  type: "array"
+                  items:
+                    type: "string"
+                    enum: [ "word", "segment" ]
+                  default: [ "segment" ]
+              required: [ "file", "model" ]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+            text/plain:
+              schema:
+                type: "string"
+        400:
+          description: Bad Request
+        500:
+          description: Internal Server Error
+
+  /audio/translations:
+    post:
+      operationId: "createTranslation"
+      tags: [ "Audio" ]
+      summary: "Create translation"
+      description: "Translates audio into English."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              additionalProperties: false
+              properties:
+                file:
+                  description: "The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.\n"
+                  type: "string"
+                  x-oaiTypeLabel: "file"
+                  format: "binary"
+                model:
+                  description: "ID of the model to use.\n"
+                  type: "string"
+                  example: "base"
+                prompt:
+                  description: "An optional text to guide the model's style or continue a previous audio segment. The prompt should be in English.\n"
+                  type: "string"
+                  default: ''
+                response_format:
+                  description: "The format of the transcript output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.\n"
+                  type: "string"
+                  enum: [ "json", "text", "srt", "verbose_json", "vtt" ]
+                  default: "json"
+                temperature:
+                  description: "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.\n"
+                  type: "number"
+                  default: 0
+              required: [ "file", "model" ]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+            text/plain:
+              schema:
+                type: "string"
+
+  /models/{model}:
+    get:
+      operationId: "retrieveModel"
+      tags: [ "Models" ]
+      summary: "Retrieve model"
+      description: "Retrieves a model instance, providing basic information about the model such as the owner and permissioning."
+      parameters:
+        - in: "path"
+          name: "model"
+          required: true
+          description: "The ID of the model to use for this request."
+          schema:
+            type: "string"
+            example: "base"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model'
+        404:
+          description: Model not found
+
+  /models:
+    get:
+      operationId: "listModels"
+      tags: [ "Models" ]
+      summary: "List models"
+      description: "Lists the currently available models, and provides basic information about each one such as the owner and availability."
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  object:
+                    type: "string"
+                    enum: [ "list" ]
+                  data:
+                    type: "array"
+                    items:
+                      $ref: '#/components/schemas/model'
+
+components:
+  schemas:
+    model:
+      title: "Model"
+      description: "Describes an OpenAI model offering that can be used with the API."
+      type: object
+      required: [ "id", "object", "created", "owned_by" ]
+      properties:
+        id:
+          type: "string"
+          description: "The model identifier, which can be referenced in the API endpoints."
+          example: "base"
+        object:
+          type: "string"
+          description: "The object type, which is always \"model\"."
+          example: "model"
+          enum: [ "model" ]
+        created:
+          type: "integer"
+          description: "The Unix timestamp (in seconds) when the model was created."
+          example: "1686935002"
+        owned_by:
+          type: "string"
+          description: "The organization that owns the model."
+          example: "organization-owner"

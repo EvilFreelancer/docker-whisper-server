@@ -1,22 +1,42 @@
 version: "3.9"
 
+x-shared-logs: &shared-logs
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10k"
+
+x-shared-deploy: &shared-deploy
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [ gpu ]
+  <<: *shared-logs
+
 services:
 
-#  server:
-#    restart: "unless-stopped"
-#    build:
-#      context: ./server
-#    volumes:
-#      - ./config.yml/app/config.yml
-#    ports:
-#      - "127.0.0.1:5000:5000"
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              count: 1
-#              capabilities: [ gpu ]
+  #server:
+  #  restart: "unless-stopped"
+  #  build:
+  #    context: ./server
+  #  volumes:
+  #    - ./config.yml/app/config.yml
+  #  ports:
+  #    - "127.0.0.1:5000:5000"
+
+  #server-swagger:
+  #  restart: "unless-stopped"
+  #  image: swaggerapi/swagger-ui:v5.17.14
+  #  ports:
+  #    - "127.0.0.1:5010:8080"
+  #  volumes:
+  #    - ./server/openapi.yaml:/openapi.yaml
+  #  environment:
+  #    SWAGGER_JSON: /openapi.yaml
+  #  <<: *shared-logs
 
   whisper:
     restart: "unless-stopped"
@@ -30,24 +50,19 @@ services:
     ports:
       - "127.0.0.1:9000:9000"
     environment:
-       WHISPER_MODEL: base
-       # WHISPER_MODEL_QUANTIZATION: q4_0
-       # WHISPER_PROCESSORS: 1
-       # WHISPER_THREADS: 4
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+      WHISPER_MODEL: base
+      #WHISPER_MODEL_QUANTIZATION: q4_0
+      #WHISPER_PROCESSORS: 1
+      #WHISPER_THREADS: 4
+    <<: *shared-deploy
 
-  swagger:
+  whisper-swagger:
     restart: "unless-stopped"
     image: swaggerapi/swagger-ui:v5.17.14
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9010:8080"
     volumes:
-      - ./whisper/openapi.json:/openapi.json
+      - ./whisper/openapi.yaml:/openapi.yaml
     environment:
-      SWAGGER_JSON: /openapi.json
+      SWAGGER_JSON: /openapi.yaml
+    <<: *shared-logs
