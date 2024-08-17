@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.5.1-runtime-ubuntu22.04
+FROM ubuntu:22.04
 WORKDIR /app
 
 # Install basic dependencies

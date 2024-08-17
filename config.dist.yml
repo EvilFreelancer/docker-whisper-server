@@ -1,8 +1,19 @@
 models:
-  base:
-    - http://whisper:9000/inference
+  tiny:
+    owned_by: organization-owner
+    endpoints:
+    - http://whisper01:9000/inference
+    - http://whisper02:9000/inference
+  #base:
+  #  owned_by: organization-owner
+  #  endpoints:
+  #  - http://whisper03:9000/inference
   #large-v2:
+  #  owned_by: organization-owner
+  #  endpoints:
   #  - http://whisper01:9000/inference
   #  - http://whisper02:9000/inference
   #large-v3:
+  #  owned_by: organization-owner
+  #  endpoints:
   #  - http://whisper03:9000/inference

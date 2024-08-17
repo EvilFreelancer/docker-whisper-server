@@ -1,88 +1,121 @@
+import uuid
+from datetime import datetime
 import random
 import os
 import logging
-from load_config import load_config
-from get_logger import get_logger
 from requests import Session
+from utils import load_config, get_logger, get_models
 from flask import Flask, request, jsonify
 
 _log = get_logger()
 
-# Port and binding
-api_port = int(os.getenv('APP_PORT', 5000))
-_log.info(f'API port is: {api_port}')
+# Get API port and binding from environment variables or use default values if not specified
 api_bind = os.getenv('APP_BIND', '0.0.0.0')
-_log.info(f'API bind to: {api_bind}')
+_log.info(f'API binding to address: {api_bind}')
+api_port = int(os.getenv('APP_PORT', 5000))
+_log.info(f'API listening on port: {api_port}')
 
-# Init application and dependencies
+# Initialize Flask application and load system configuration
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/v1"
-
-# Load system config
+app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max
+app.logger.setLevel(logging.INFO)
 config = load_config('config.yml')
-available_models = list(config['models'].keys())
+available_models = get_models(config)
 
 
 @app.route('/')
 @app.route('/index')
 def index():
+    _log.info('Received a GET request to the root endpoint "/".')
     return "test"
 
 
-@app.route('/audio/models', methods=['GET'])
+@app.route('/models', methods=['GET'])
 def models():
-    result = available_models
+    _log.debug('Received a GET request to retrieve available models.')
+    result = {"object": "list", "data": available_models}
     return jsonify(result), 200
 
 
-@app.route('/audio/transcriptions', methods=['POST'])
-def transcriptions():
-    _log.debug(request.__dict__)
+@app.route('/audio/transcriptions', methods=['POST'], defaults={"response_format": "json"})
+@app.route('/audio/translations', methods=['POST'], defaults={"language": "en", "response_format": "json"})
+def transcriptions(language: str = None, response_format: str = None):
+    _log.debug('Received a POST request to transcribe an audio file.')
 
-    # Get file
+    # Check if 'file' attribute is present in the request
     if 'file' not in request.files:
-        return jsonify({'message': 'No file part'}), 400
+        _log.error(message := 'No file attribute provided in the request')
+        return jsonify({'message': message}), 400
+
     file = request.files['file']
+    # Check if the file is empty or None
     if file.filename == '' or file is None:
-        return jsonify({'message': 'No selected file'}), 400
+        _log.error(message := 'File attribute is empty')
+        return jsonify({'message': message}), 400
 
-    # Get name of model
+    # Check if model parameter is provided and validate it
     if 'model' not in request.form:
-        return jsonify({'message': 'No model provided'}), 400
-    if request.form['model'] not in available_models:
-        return jsonify({'message': 'Requested model is not available'}), 400
+        _log.error(message := 'No model provided in the request')
+        return jsonify({'message': message}), 400
 
-    # Model related settings
-    data = dict()
+    model = request.form['model']
+    if model not in config['models'].keys():
+        _log.warning(message := f'Requested model "{model}" is not available.')
+        return jsonify({'message': message}), 400
+
+    # Collect form data for transcription
+    data = {}
     if 'language' in request.form:
+        _log.debug(f'language: {request.form["language"]}')
         data['language'] = request.form['language']
-        # TODO: check in language in available list
+    if language is not None:
+        _log.debug(f'language: {language}')
+        data['language'] = language
     if 'prompt' in request.form:
+        _log.debug(f'prompt: {request.form["prompt"]}')
         data['prompt'] = request.form['prompt']
     if 'response_format' in request.form:
+        _log.debug(f'response_format: {request.form["response_format"]}')
         data['response_format'] = request.form['response_format']
+    if response_format is not None:
+        _log.debug(f'response_format: {response_format}')
+        data['response_format'] = response_format
     if 'temperature' in request.form:
+        _log.debug(f'temperature: {request.form["temperature"]}')
         data['temperature'] = request.form['temperature']
-    # if 'timestamp_granularities' in request.form:
-    #     data['timestamp_granularities'] = request.form['timestamp_granularities']
-
-    # Connection settings
-    model = request.form['model']
-    servers = config['models'][model]
-    server = random.choice(servers)
-
-    _log.info(f"Server: {server}, Model: {model}, Data: {data}")
+    if 'temperature_inc' in request.form:
+        _log.debug(f'temperature_inc: {request.form["temperature_inc"]}')
+        data['temperature'] = request.form['temperature']
+    if 'timestamp_granularities' in request.form:
+        _log.debug(f'timestamp_granularities: {request.form["timestamp_granularities"]}')
+        data['timestamp_granularities'] = request.form['timestamp_granularities']
 
     try:
-        session = Session()
-        response = session.post(url=server, files={'file': file}, data=data)
-        _log.debug(response.__dict__)
 
-        result = response.content
-        return result, 200
+        # Get uniq ID of request
+        request_id = str(uuid.uuid4())
+
+        # Select a random server from model's endpoints list
+        endpoint = random.choice(config['models'][model]['endpoints'])
+
+        # Init requests session
+        session = Session()
+
+        # Send POST request to the chosen server with uploaded file and data
+        _log.info({"uuid": request_id, "name": "transcriptions", "type": "request",
+                   'timestamp': int(datetime.utcnow().timestamp()),
+                   "endpoint": endpoint, "model": model, "data": data})
+        response = session.post(url=endpoint, files={'file': file}, data=data)
+
+        # Send response
+        _log.debug({"uuid": request_id, "name": "transcriptions", "type": "response",
+                    'timestamp': int(datetime.utcnow().timestamp()),
+                    'status_code': response.status_code, 'content': response.content})
+        return response.content, response.status_code
+
     except Exception as e:
         _log.exception(e)
-        return jsonify({'message': 'Error processing file'}), 500
+        return jsonify({'message': 'An error occurred while processing the audio file.'}), 500
 
 
 if __name__ == "__main__":
