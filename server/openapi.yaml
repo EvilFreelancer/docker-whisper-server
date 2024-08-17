@@ -1,8 +1,8 @@
 openapi: "3.0.2"
 
 info:
-  title: "API-server documentation"
-  description: "This is a sample API documentation for a OpenAI-like server."
+  title: "OpenAI-like API service"
+  description: "This is a documentation for a OpenAI-like API service."
   version: "1.0.0"
 
 servers:
