@@ -1,10 +1,8 @@
 # Whisper.cpp API Webserver in Docker
 
-Whisper.cpp HTTP-сервер для автоматического распознавания речи (ASR) с API подобным OpenAI в Docker-контейнере.
-
-Этот проект содержит в себе набор инструментов и конфигураций для сборки
-Docker-контейнера с сервером транскрипции, основанным
-на [whisper.cpp server](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
+Whisper.cpp HTTP-сервер для автоматического распознавания речи (ASR), предоставляющее API, совместимое с OpenAI, и
+позволяющее гибко настраивать распределённую расшифровку аудиофайлов. Система разработана для эффективного развертывания
+и управления Docker-контейнерами, основанными на [whisper.cpp server](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
 **Русский** | [中文](./README.zh.md) | [English](./README.en.md)
 
