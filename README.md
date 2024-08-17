@@ -2,7 +2,8 @@
 
 Whisper.cpp HTTP-сервер для автоматического распознавания речи (ASR), представляет собой API, совместимое с OpenAI, и
 позволяющее гибко настраивать распределённую расшифровку аудиофайлов. Система разработана для эффективного развертывания
-и управления Docker-контейнерами, основанными на [whisper.cpp server](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
+и маршрутизации запросов между множества Docker-контейнеров основанных
+на [whisper.cpp server](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server).
 
 **Русский** | [中文](./README.zh.md) | [English](./README.en.md)
 
