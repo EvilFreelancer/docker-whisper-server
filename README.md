@@ -241,7 +241,14 @@ entrypoint.sh [автоматически](https://github.com/EvilFreelancer/doc
 запросы на сервер соответствующей модели.
 
 ```yaml
-
+  server:
+    restart: "unless-stopped"
+    build:
+      context: ./server
+    volumes:
+      - ./config.yml/app/config.yaml
+    ports:
+      - "127.0.0.1:5000:5000"
 ```
 
 ### Пример конфигурации
@@ -268,11 +275,123 @@ models:
 
 #### /audio/transcriptions
 
+Этот эндпоинт используется для создания транскрипции аудиофайла в исходном языке.
+
+Метод: `POST`
+
+Параметры запроса:
+
+* **file** (обязательный): Аудиофайл для транскрипции. Поддерживаются
+  форматы: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, или `webm`.
+* **model** (обязательный): ID модели, которая будет использоваться для транскрипции.
+* language (опционально): Язык аудиофайла в формате [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
+  Передача этого параметра может улучшить точность и скорость распознавания.
+* prompt (опционально): Дополнительный текст, который может помочь модели в транскрипции или продолжить предыдущий
+  сегмент аудио.
+* response_format (опционально): Формат вывода транскрипции. Возможные значения: `json`, `text`, `srt`, `verbose_json`
+  и `vtt`. По умолчанию: `json`.
+* temperature (опционально): Температура выборки, значение от `0` до `1`. Более высокие значения, такие как `0.8`,
+  сделают результат более случайным, а более низкие значения, такие как `0.2`, сделают его более фокусированным и
+  детерминированным. Если установлено значение `0`, модель будет автоматически увеличивать температуру до достижения
+  определённых порогов.
+
+Пример запроса:
+
+```shell
+curl http://localhost:5000/audio/transcriptions \
+  -H "Content-Type: multipart/form-data" \
+  -F file="@./assets/audio.mp3" \
+  -F model="base" \
+  -F language="ru" \
+  -F response_format="json"
+```
+
+Пример ответа:
+
+```json
+{
+  "text": "This is the transcription of the audio."
+}
+```
+
 #### /audio/translations
+
+Этот эндпоинт используется для перевода аудиофайла на английский язык.
+
+Работает один в один как `/audio/transcriptions` только `language=en` и его нельзя менять.
+
+Пример запроса:
+
+```shell
+curl http://localhost:5000/audio/transcriptions \
+  -H "Content-Type: multipart/form-data" \
+  -F file="@./assets/audio.mp3" \
+  -F model="base" \
+  -F response_format="json"
+```
+
+Пример ответа:
+
+```json
+{
+  "text": "This is the translated transcription of the audio."
+}
+```
 
 #### /models
 
+Этот эндпоинт используется для получения списка всех доступных моделей.
+
+Метод: `GET`
+
+Пример запроса:
+
+```shell
+curl http://localhost:5000/models
+```
+
+Пример ответа:
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "base",
+      "object": "model",
+      "created": 1686935002,
+      "owned_by": "organization-owner"
+    }
+  ]
+}
+```
+
 #### /models/{model}
+
+Этот эндпоинт используется для получения информации о конкретной модели.
+
+Метод: `GET`
+
+Параметры пути:
+
+* model (обязательный): ID модели, о которой нужно получить информацию.
+
+Пример запроса:
+
+```shell
+curl http://localhost:5000/models/base
+```
+
+Пример ответа:
+
+```json
+{
+  "id": "base",
+  "object": "model",
+  "created": 1686935002,
+  "owned_by": "organization-owner"
+}
+```
 
 ### Swagger документация
 
