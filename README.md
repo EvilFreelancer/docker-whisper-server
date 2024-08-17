@@ -13,14 +13,14 @@ Docker-контейнера с сервером транскрипции, осн
 * [Требования](#Требования)
 * [Установка](#Установка)
 * [Whisper.cpp API-сервер](#Whisper.cpp-API-сервер)
+    * [Swagger документация](#Swagger-документация)
     * [Эндпоинты](#Эндпоинты)
     * [Переменные окружения](#Переменные-окружения)
     * [Квантизация](#Квантизация)
-    * [Swagger документация](#Swagger-документация)
 * [OpenAI-like API сервер](#OpenAI-like-API-сервер)
-    * [Пример конфигурации](#Пример-конфигурации)
-    * [Эндпоинты](#Эндпоинты)
+    * [Пример config.yml](#Пример-config.yml)
     * [Swagger документация](#Swagger-документация)
+    * [Эндпоинты](#Эндпоинты)
 * [Ссылки](#Ссылки)
 
 ## Требования
@@ -106,6 +106,26 @@ Runtime вы сможете найти в моей публикации
       WHISPER_PROCESSORS: 1
       WHISPER_THREADS: 4
 ```
+
+### Swagger документация
+
+Сервис `whisper-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
+
+```yaml
+  whisper-swagger:
+    restart: "unless-stopped"
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:9010:8080"
+    volumes:
+      - ./whisper/openapi.yaml:/openapi.yaml
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+```
+
+После включения по адресу http://localhost:9010 будет доступен следующего вида интерфейс:
+
+![Swagger UI](./assets/whisper-swagger.png)
 
 ### Эндпоинты
 
@@ -215,26 +235,6 @@ entrypoint.sh [автоматически](https://github.com/EvilFreelancer/doc
 Подробнее о [квантизации](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization) в
 документации проекта whisper.cpp.
 
-### Swagger документация
-
-Сервис `whisper-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
-
-```yaml
-  whisper-swagger:
-    restart: "unless-stopped"
-    image: swaggerapi/swagger-ui:v5.17.14
-    ports:
-      - "127.0.0.1:9010:8080"
-    volumes:
-      - ./whisper/openapi.yaml:/openapi.yaml
-    environment:
-      SWAGGER_JSON: /openapi.yaml
-```
-
-После включения по адресу http://localhost:9010 будет доступен следующего вида интерфейс:
-
-![Swagger UI](./assets/whisper-swagger.png)
-
 ## OpenAI-like API сервер
 
 Этот сервис представляет собой обёртку вокруг нескольких Whisper.cpp серверов, запущенных по сети. Он маршрутизирует
@@ -251,7 +251,7 @@ entrypoint.sh [автоматически](https://github.com/EvilFreelancer/doc
       - "127.0.0.1:5000:5000"
 ```
 
-### Пример конфигурации
+### Пример config.yml
 
 Конфигурация сервера и список доступных моделей настраивается в файле `config.yml`, по умолчанию имеет следующий вид:
 
@@ -270,6 +270,26 @@ models:
 
 В конфигурации можно указать несколько моделей и серверов для каждой модели, в случае если модель доступна на нескольких
 адреса в момент запроса будет выбираться случайный сервер и запрос перенавится на него.
+
+### Swagger документация
+
+Сервис `server-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
+
+```yaml
+  server-swagger:
+    restart: "unless-stopped"
+    image: swaggerapi/swagger-ui:v5.17.14
+    ports:
+      - "127.0.0.1:5010:8080"
+    volumes:
+      - ./server/openapi.yaml:/openapi.yaml
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+```
+
+После включения по адресу http://localhost:5010 будет доступен следующего вида интерфейс:
+
+![Swagger UI](./assets/server-swagger.png)
 
 ### Эндпоинты
 
@@ -392,26 +412,6 @@ curl http://localhost:5000/models/base
   "owned_by": "organization-owner"
 }
 ```
-
-### Swagger документация
-
-Сервис `server-swagger` предоставляет визуализацию и документацию всех доступных эндпоинтов.
-
-```yaml
-  server-swagger:
-    restart: "unless-stopped"
-    image: swaggerapi/swagger-ui:v5.17.14
-    ports:
-      - "127.0.0.1:5010:8080"
-    volumes:
-      - ./server/openapi.yaml:/openapi.yaml
-    environment:
-      SWAGGER_JSON: /openapi.yaml
-```
-
-После включения по адресу http://localhost:5010 будет доступен следующего вида интерфейс:
-
-![Swagger UI](./assets/server-swagger.png)
 
 ## Ссылки
 
