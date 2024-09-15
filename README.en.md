@@ -146,3 +146,18 @@ curl 127.0.0.1:9000/load \
 
 - [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
 - [server example](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) of whisper.cpp
+
+## Citing
+
+```text
+[Pavel Rykov]. (2024). Whisper.cpp API Webserver in Docker. GitHub. https://github.com/EvilFreelancer/docker-whisper-server
+```
+
+```text
+@misc{pavelrykov2024whisperapi,
+  author = {Pavel Rykov},
+  title  = {Whisper.cpp API Webserver in Docker},
+  year   = {2024},
+  url    = {https://github.com/EvilFreelancer/docker-whisper-server}
+}
+```

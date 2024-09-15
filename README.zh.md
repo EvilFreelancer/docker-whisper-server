@@ -207,3 +207,18 @@ q8_0 或 7
 
 - [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
 - [whisper.cpp 服务器示例](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server)
+
+## 引用
+
+```text
+[Pavel Rykov]. (2024). Whisper.cpp API Webserver in Docker. GitHub. https://github.com/EvilFreelancer/docker-whisper-server
+```
+
+```text
+@misc{pavelrykov2024whisperapi,
+  author = {Pavel Rykov},
+  title  = {Whisper.cpp API Webserver in Docker},
+  year   = {2024},
+  url    = {https://github.com/EvilFreelancer/docker-whisper-server}
+}
+```
