@@ -23,7 +23,7 @@ services:
     build:
       context: ./server
     volumes:
-      - ./config.yml/app/config.yaml
+      - ./config.yml:/app/config.yml
     ports:
       - "127.0.0.1:5000:5000"
     <<: *shared-logs

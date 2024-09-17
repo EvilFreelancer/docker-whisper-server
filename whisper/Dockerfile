@@ -24,8 +24,7 @@ RUN set -xe \
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
 RUN make clean \
- && GGML_CUDA=1 make -j server quantize
-
+ && WHISPER_CUBLAS=1 GGML_CUDA=1 make -j$(nproc) server quantize
 
 
 FROM nvidia/cuda:12.5.1-runtime-ubuntu22.04
