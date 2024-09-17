@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.5.1-devel-ubuntu22.04 AS builder
+FROM nvidia/cuda:12.6.1-devel-ubuntu22.04 AS builder
 WORKDIR /app
 
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
@@ -24,10 +24,10 @@ RUN set -xe \
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
 RUN make clean \
- && WHISPER_CUBLAS=1 GGML_CUDA=1 make -j$(nproc) server quantize
+ && GGML_CUDA=1 make -j$(nproc) server quantize
 
 
-FROM nvidia/cuda:12.5.1-runtime-ubuntu22.04
+FROM nvidia/cuda:12.6.1-runtime-ubuntu22.04
 WORKDIR /app
 
 # Install basic dependencies
