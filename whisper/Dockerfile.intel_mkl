@@ -35,7 +35,7 @@ RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
 RUN . /opt/intel/oneapi/setvars.sh \
-  && WHISPER_MKL=1 make -j$(nproc)
+  && WHISPER_MKL=1 make -j$(nproc) server quantize
 
 FROM ubuntu:22.04
 WORKDIR /app
