@@ -20,28 +20,8 @@ paths:
           multipart/form-data:
             schema:
               properties:
-                audio_ctx:
-                  description: Audio context size (0 - all)
-                  example: 0
-                  type: integer
-                  default: ''
-                beam_size:
-                  description: Beam size for beam search
-                  example: -1
-                  type: integer
-                  default: ''
-                best_of:
-                  description: Number of best candidates to keep
-                  example: 2
-                  type: integer
-                  default: ''
                 debug_mode:
                   description: Enable debug mode
-                  example: false
-                  type: boolean
-                  default: ''
-                detect_language:
-                  description: Exit after automatically detecting language
                   example: false
                   type: boolean
                   default: ''
@@ -50,80 +30,15 @@ paths:
                   example: false
                   type: boolean
                   default: ''
-                duration:
-                  description: Duration of audio to process in milliseconds
-                  example: 0
-                  type: integer
-                entropy_thold:
-                  description: Entropy threshold for decoder fail
-                  example: 2.4
-                  type: number
-                  default: ''
                 file:
                   description: Audio file to be transcribed
                   format: binary
                   type: string
-                flash_attn:
-                  description: Use Flash Attention mechanism
-                  example: false
-                  type: boolean
-                  default: ''
                 language:
                   description: Spoken language ('auto' for auto-detect)
                   example: en
                   type: string
                   default: ''
-                logprob_thold:
-                  description: Log probability threshold for decoder fail
-                  example: -1.0
-                  type: number
-                  default: ''
-                max_context:
-                  description: Maximum number of text context tokens to store
-                  example: -1
-                  type: integer
-                  default: ''
-                max_len:
-                  description: Maximum segment length in characters
-                  example: 0
-                  type: integer
-                  default: ''
-                no_fallback:
-                  description: Do not use temperature fallback while decoding
-                  example: false
-                  type: boolean
-                  default: ''
-                no_timestamps:
-                  description: Do not print timestamps
-                  example: false
-                  type: boolean
-                  default: ''
-                offset_n:
-                  description: Segment index offset
-                  example: 0
-                  type: integer
-                  default: ''
-                offset_t:
-                  description: Time offset in milliseconds
-                  example: 0
-                  type: integer
-                  default: ''
-                print_colors:
-                  description: Print colors
-                  example: false
-                  type: boolean
-                print_progress:
-                  description: Print progress
-                  example: false
-                  type: boolean
-                print_realtime:
-                  description: Print output in realtime
-                  example: false
-                  type: boolean
-                print_special:
-                  description: Print special tokens
-                  example: false
-                  type: boolean
                 prompt:
                   description: Initial prompt
                   example: ''
@@ -138,34 +53,14 @@ paths:
                     - vtt
                   example: json
                   type: string
-                split_on_word:
-                  description: Split on word rather than on token
-                  example: false
-                  type: boolean
                 temperature:
                   description: Temperature setting for the transcription
                   example: 0.0
-                  type: number
-                temperature_inc:
-                  description: Temperature increment for the transcription
-                  example: 0.2
                   type: number
                 tinydiarize:
                   description: Enable tinydiarize (requires a tdrz model)
                   example: false
                   type: boolean
-                translate:
-                  description: Translate from source language to English
-                  example: false
-                  type: boolean
-                use_gpu:
-                  description: Use GPU for processing
-                  example: true
-                  type: boolean
-                word_thold:
-                  description: Word timestamp probability threshold
-                  example: 0.01
-                  type: number
               required: [ file ]
               type: object
       responses:

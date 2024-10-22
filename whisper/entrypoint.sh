@@ -46,7 +46,7 @@ to_boolean() {
 # Check if the model file exists, if not, download it
 if [ ! -f "$WHISPER_MODEL_PATH" ]; then
   echo "Model not found at $WHISPER_MODEL_PATH. Downloading model..."
-  [ ! -f "/app/models/download-ggml-model.sh" ] && cp -v /app/download-ggml-model.sh /app/models/
+  cp -v /app/download-ggml-model.sh /app/models/
   bash /app/models/download-ggml-model.sh "$WHISPER_MODEL"
 fi
 

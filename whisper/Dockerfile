@@ -1,10 +1,27 @@
-FROM nvidia/cuda:12.6.1-devel-ubuntu22.04 AS builder
+ARG UBUNTU_VERSION=22.04
+ARG CUDA_VERSION=12.6.1
+ARG BASE_CUDA_DEV_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+ARG BASE_CUDA_RUNTIME_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
+
+FROM ${BASE_CUDA_DEV_CONTAINER} as builder
 WORKDIR /app
 
+# Repo with sources
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
+
 # It may be name of branch, tag or commit hash
 #ARG WHISPER_VERSION="v1.6.3"  # TODO: When it will be released
 ARG WHISPER_VERSION="master"
+
+# Unless otherwise specified, we make a fat build.
+ARG CUDA_DOCKER_ARCH=all
+# Set nvcc architecture
+ENV CUDA_DOCKER_ARCH=${CUDA_DOCKER_ARCH}
+
+# Enable cuBLAS
+ARG GGML_CUDA=1
+# Set cuBLAS
+ENV GGML_CUDA=${GGML_CUDA}
 
 # To get latest tag use this:
 # git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \
@@ -24,10 +41,10 @@ RUN set -xe \
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
 RUN make clean \
- && GGML_CUDA=1 make -j$(nproc) server quantize
+ && make -j$(nproc) server quantize
 
 
-FROM nvidia/cuda:12.6.1-runtime-ubuntu22.04
+FROM ${BASE_CUDA_RUNTIME_CONTAINER}
 WORKDIR /app
 
 # Install basic dependencies
