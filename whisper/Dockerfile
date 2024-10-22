@@ -10,7 +10,6 @@ WORKDIR /app
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 
 # It may be name of branch, tag or commit hash
-#ARG WHISPER_VERSION="v1.6.3"  # TODO: When it will be released
 ARG WHISPER_VERSION="master"
 
 # Unless otherwise specified, we make a fat build.
@@ -32,7 +31,8 @@ ENV GGML_CUDA=${GGML_CUDA}
 # Install dependencies
 RUN set -xe \
  && apt update -q \
- && apt install -fyq bash wget ffmpeg git make vim g++
+ && apt install -fyq bash wget ffmpeg git make vim g++ \
+ && apt clean
 
 # Clone whisper.cpp repo
 RUN set -xe \
@@ -50,7 +50,8 @@ WORKDIR /app
 # Install basic dependencies
 RUN set -xe \
  && apt update -q \
- && apt install -fyq bash wget ffmpeg
+ && apt install -fyq bash wget ffmpeg \
+ && apt clean
 
 # Create folders
 RUN set -xe \

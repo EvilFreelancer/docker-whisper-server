@@ -4,12 +4,13 @@ WORKDIR /app
 # Install basic dependencies
 RUN set -xe \
  && apt update -q \
- && apt install -fyq python3 python3-pip
+ && apt install -fyq python3 python3-pip \
+ && apt clean
 
 # Install deps
 COPY requirements.txt .
 RUN set -xe \
- && pip install -r requirements.txt
+ && pip install --no-cache -r requirements.txt
 
 # Copy sources
 COPY . .
