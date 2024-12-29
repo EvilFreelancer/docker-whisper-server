@@ -31,7 +31,7 @@ ENV GGML_CUDA=${GGML_CUDA}
 # Install dependencies
 RUN set -xe \
  && apt update -q \
- && apt install -fyq bash wget ffmpeg git make vim g++ \
+ && apt install -fyq bash wget ffmpeg git make cmake vim g++ \
  && apt clean
 
 # Clone whisper.cpp repo
@@ -40,8 +40,8 @@ RUN set -xe \
 
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
-RUN make clean \
- && make -j$(nproc) server quantize
+RUN cmake -B build \
+ && cmake --build build --config Release
 
 
 FROM ${BASE_CUDA_RUNTIME_CONTAINER}
@@ -59,8 +59,12 @@ RUN set -xe \
 
 # Copy compiled tools
 COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
-COPY --from=builder /app/whisper.cpp/server .
-COPY --from=builder /app/whisper.cpp/quantize .
+COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
+COPY --from=builder /app/whisper.cpp/build/bin/quantize .
 
 # Init entrypoint
 ADD entrypoint.sh .

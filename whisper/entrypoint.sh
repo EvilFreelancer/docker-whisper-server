@@ -74,7 +74,7 @@ if [ -n "$WHISPER_MODEL_QUANTIZATION" ]; then
 fi
 
 # Construct the command with the options
-CMD="./server"
+CMD="./whisper-server"
 CMD+=" --model $WHISPER_MODEL_PATH"
 
 # Basic parameters
