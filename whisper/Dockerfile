@@ -37,7 +37,10 @@ RUN set -xe \
 
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
-RUN cmake -B build -DGGML_CUDA=ON \
+RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1
+RUN set -xe \
+ && export LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs/:$LD_LIBRARY_PATH \
+ && cmake -B build -DGGML_CUDA=ON \
  && cmake --build build --config Release -j$(nproc)
 
 
