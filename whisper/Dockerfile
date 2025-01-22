@@ -40,7 +40,10 @@ RUN set -xe \
 
 # Clone whisper.cpp repo
 RUN set -xe \
- && git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
+ && git clone "$WHISPER_REPO" whisper.cpp
+WORKDIR /app/whisper.cpp
+RUN set -xe \
+ && git checkout "$WHISPER_VERSION"
 
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
