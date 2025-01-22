@@ -28,6 +28,10 @@ ENV GGML_CUDA=${GGML_CUDA}
 #    tail --lines=1 | cut --delimiter='/' --fields=3
 # For details see here: https://stackoverflow.com/questions/8932389/git-shallow-clone-to-specific-tag)
 
+# Anti-"sanction" fix
+RUN set -xe \
+ && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
+
 # Install dependencies
 RUN set -xe \
  && apt update -q \
