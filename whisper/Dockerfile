@@ -47,7 +47,7 @@ RUN set -xe \
 
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
-RUN cmake -B build \
+RUN cmake -B build -DGGML_CUDA=ON \
  && cmake --build build --config Release -j$(nproc)
 
 
