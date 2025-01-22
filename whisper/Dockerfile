@@ -12,16 +12,6 @@ ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 # It may be name of branch, tag or commit hash
 ARG WHISPER_VERSION="master"
 
-# Unless otherwise specified, we make a fat build.
-ARG CUDA_DOCKER_ARCH=all
-# Set nvcc architecture
-ENV CUDA_DOCKER_ARCH=${CUDA_DOCKER_ARCH}
-
-# Enable cuBLAS
-ARG GGML_CUDA=1
-# Set cuBLAS
-ENV GGML_CUDA=${GGML_CUDA}
-
 # To get latest tag use this:
 # git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \
 #    "https://github.com/ggerganov/whisper.cpp.git" '*.*.*' | \
@@ -30,7 +20,7 @@ ENV GGML_CUDA=${GGML_CUDA}
 
 # Anti-"sanction" fix
 RUN set -xe \
- && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
+ && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-*.list
 
 # Install dependencies
 RUN set -xe \
@@ -53,6 +43,10 @@ RUN cmake -B build -DGGML_CUDA=ON \
 
 FROM ${BASE_CUDA_RUNTIME_CONTAINER}
 WORKDIR /app
+
+# Anti-"sanction" fix
+RUN set -xe \
+ && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-*.list
 
 # Install basic dependencies
 RUN set -xe \
