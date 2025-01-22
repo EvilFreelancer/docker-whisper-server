@@ -45,7 +45,7 @@ RUN set -xe \
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp
 RUN cmake -B build \
- && cmake --build build --config Release
+ && cmake --build build --config Release -j$(nproc)
 
 
 FROM ${BASE_CUDA_RUNTIME_CONTAINER}
