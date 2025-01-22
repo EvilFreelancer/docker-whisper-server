@@ -66,6 +66,7 @@ COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
 COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/ggml/src/ggml-cuda/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
 COPY --from=builder /app/whisper.cpp/build/bin/quantize .
