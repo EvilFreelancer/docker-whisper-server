@@ -1,25 +1,17 @@
 FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT as builder
 WORKDIR /app
 
-# Install basic dependencies
-RUN set -xe \
- && apt update -q \
- && apt install -fyqq wget ffmpeg git make cmake vim g++ \
- && apt clean
-
-# Add Intel oneAPI repository and install MKL
-RUN set -xe \
- && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
-  | tee /etc/apt/sources.list.d/oneAPI.list \
- && apt update -q \
- && apt install -fyqq intel-basekit \
- && apt clean
-
 # Repo with sources
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 
 # It may be name of branch, tag or commit hash
 ARG WHISPER_VERSION="master"
+
+# Install basic dependencies
+RUN set -xe \
+ && apt update -q \
+ && apt install -fyqq wget ffmpeg git make cmake vim g++ \
+ && apt clean
 
 # Clone whisper.cpp repo
 RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
@@ -27,7 +19,6 @@ RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
 RUN set -xe  \
- && source /opt/intel/oneapi/setvars.sh \
  && cmake -B build -DWHISPER_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
  && cmake --build build --config Release
 
@@ -39,14 +30,6 @@ WORKDIR /app
 RUN set -xe \
  && apt update -q \
  && apt install -fyqq wget ffmpeg \
- && apt clean
-
-# Add Intel oneAPI repository and install MKL
-RUN set -xe \
- && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
-  | tee /etc/apt/sources.list.d/oneAPI.list \
- && apt update -q \
- && apt install -fyqq intel-basekit \
  && apt clean
 
 # Create folders
