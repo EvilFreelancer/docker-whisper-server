@@ -1,0 +1,80 @@
+FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT as builder
+WORKDIR /app
+
+# Repo with sources
+ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
+
+# It may be name of branch, tag or commit hash
+ARG WHISPER_VERSION="master"
+
+# To get latest tag use this:
+# git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \
+#    "https://github.com/ggerganov/whisper.cpp.git" '*.*.*' | \
+#    tail --lines=1 | cut --delimiter='/' --fields=3
+# For details see here: https://stackoverflow.com/questions/8932389/git-shallow-clone-to-specific-tag)
+
+ARG WHISPER_MKL=1
+ENV WHISPER_MKL=${WHISPER_MKL}
+
+# Install dependencies
+RUN set -xe \
+ && apt update -q \
+ && apt install -fyqq bash wget ffmpeg git make cmake vim g++ gpg-agent \
+ && apt clean
+
+# Add Intel oneAPI repository and install MKL
+RUN set -xe \
+ && wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+  | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null \
+ && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
+  | tee /etc/apt/sources.list.d/oneAPI.list \
+ && apt update -q \
+ && apt install -fyqq intel-basekit \
+ && apt clean
+
+# Clone whisper.cpp repo
+RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
+
+# Build whisper.cpp with MKL support
+WORKDIR /app/whisper.cpp
+RUN set -xe  \
+ && source /opt/intel/oneapi/setvars.sh\
+ && cmake -B build \
+ && cmake --build build --config Release
+
+
+FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT
+WORKDIR /app
+
+# Install basic dependencies
+RUN set -xe \
+ && apt update -q \
+ && apt install -fyq bash wget ffmpeg gpg-agent \
+ && apt clean
+
+# Add Intel oneAPI repository and install MKL runtime
+RUN set -xe \
+ && wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+  | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null \
+ && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
+  | tee /etc/apt/sources.list.d/oneAPI.list \
+ && apt update -q \
+ && apt install -fyqq intel-basekit \
+ && apt clean
+
+# Create folders
+RUN set -xe \
+ && mkdir -pv /app/models /app/audios
+
+# Copy compiled tools
+COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
+COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
+COPY --from=builder /app/whisper.cpp/build/bin/quantize .
+
+# Initialize entrypoint
+ADD entrypoint.sh .
+ENTRYPOINT ["/app/entrypoint.sh"]
