@@ -19,7 +19,7 @@ RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
 RUN set -xe  \
- && cmake -B build -DWHISPER_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+ && cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
  && cmake --build build --config Release
 
 
