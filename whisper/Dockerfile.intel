@@ -1,18 +1,18 @@
 FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT as builder
 WORKDIR /app
 
+# Install basic dependencies
+RUN set -xe \
+ && apt update -q \
+ && apt install -fyqq wget ffmpeg git make cmake vim g++ \
+ && apt clean
+
 # Add Intel oneAPI repository and install MKL
 RUN set -xe \
  && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
   | tee /etc/apt/sources.list.d/oneAPI.list \
  && apt update -q \
  && apt install -fyqq intel-basekit \
- && apt clean
-
-# Install basic dependencies
-RUN set -xe \
- && apt update -q \
- && apt install -fyqq wget ffmpeg git make cmake vim g++ \
  && apt clean
 
 # Repo with sources
@@ -35,18 +35,18 @@ RUN set -xe  \
 FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT
 WORKDIR /app
 
+# Install basic dependencies
+RUN set -xe \
+ && apt update -q \
+ && apt install -fyqq wget ffmpeg \
+ && apt clean
+
 # Add Intel oneAPI repository and install MKL
 RUN set -xe \
  && echo "deb [treusted=yes] https://apt.repos.intel.com/oneapi all main" \
   | tee /etc/apt/sources.list.d/oneAPI.list \
  && apt update -q \
  && apt install -fyqq intel-basekit \
- && apt clean
-
-# Install basic dependencies
-RUN set -xe \
- && apt update -q \
- && apt install -fyqq wget ffmpeg \
  && apt clean
 
 # Create folders
