@@ -28,7 +28,7 @@ RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
 WORKDIR /app/whisper.cpp
 RUN set -xe  \
  && source /opt/intel/oneapi/setvars.sh \
- && cmake -B build \
+ && cmake -B build -DWHISPER_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
  && cmake --build build --config Release
 
 
