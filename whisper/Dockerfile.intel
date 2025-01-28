@@ -1,4 +1,6 @@
-FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT as builder
+ARG ONEAPI_IMAGE_VER=2025.0.2-0-devel-ubuntu24.04
+
+FROM intel/oneapi-basekit:${ONEAPI_IMAGE_VER} AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -25,7 +27,7 @@ RUN set -xe  \
  && cmake --build build --config Release -v -j$(nproc)
 
 
-FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT
+FROM intel/oneapi-runtime:${ONEAPI_IMAGE_VER} AS runtime
 WORKDIR /app
 
 # Install basic dependencies
@@ -43,6 +45,7 @@ COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
 COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/ggml/src/ggml-sycl/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
