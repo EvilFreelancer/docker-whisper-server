@@ -41,7 +41,7 @@ RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/lib
 RUN set -xe \
  && export LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs/:$LD_LIBRARY_PATH \
  && cmake -B build -DGGML_CUDA=ON \
- && cmake --build build --config Release -j$(nproc)
+ && cmake --build build --config Release -v -j$(nproc)
 
 
 FROM ${BASE_CUDA_RUNTIME_CONTAINER}
@@ -67,6 +67,7 @@ COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/ggml/src/ggml-cuda/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
 COPY --from=builder /app/whisper.cpp/build/bin/quantize .

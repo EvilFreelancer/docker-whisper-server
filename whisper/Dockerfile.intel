@@ -1,17 +1,19 @@
 FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT as builder
 WORKDIR /app
 
+# Install dependencies
+RUN set -xe \
+ && apt update -q \
+    # Need to update to at least version 2025.0.1
+ && apt install -fyq intel-basekit \
+ && apt install -fyq bash wget ffmpeg git make cmake vim g++ \
+ && apt clean
+
 # Repo with sources
 ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 
 # It may be name of branch, tag or commit hash
-ARG WHISPER_VERSION="master"
-
-# Install basic dependencies
-RUN set -xe \
- && apt update -q \
- && apt install -fyqq wget ffmpeg git make cmake vim g++ \
- && apt clean
+ARG WHISPER_VERSION="v1.7.4"
 
 # Clone whisper.cpp repo
 RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
@@ -19,8 +21,8 @@ RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
 RUN set -xe  \
- && cmake -B build -DWHISPER_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
- && cmake --build build --config Release
+ && cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+ && cmake --build build --config Release -v -j$(nproc)
 
 
 FROM intelanalytics/ipex-llm-inference-cpp-xpu:2.2.0-SNAPSHOT
@@ -29,7 +31,7 @@ WORKDIR /app
 # Install basic dependencies
 RUN set -xe \
  && apt update -q \
- && apt install -fyqq wget ffmpeg \
+ && apt install -fyq bash wget ffmpeg \
  && apt clean
 
 # Create folders
@@ -41,6 +43,7 @@ COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
 COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
 COPY --from=builder /app/whisper.cpp/build/bin/quantize .
