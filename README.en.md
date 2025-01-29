@@ -20,11 +20,11 @@ on [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/s
 Before you begin, ensure you have a machine with an GPU that supports modern CUDA, due to the computational
 demands of the docker image.
 
-* Nvidia GPU
-* CUDA
+* Nvidia GPU / Intel Arc
+* CUDA / oneAPI
 * Docker
 * Docker Compose
-* Nvidia Docker Runtime
+* Nvidia Docker Runtime (Nvidia only)
 
 For detailed instructions on how to prepare a Linux machine for running neural networks, including the installation of
 CUDA, Docker, and Nvidia Docker Runtime, please refer to the
@@ -45,6 +45,33 @@ on Russian.
     ```shell
     cp docker-compose.dist.yml docker-compose.yml
     ```
+
+Example for Intel Arc cards:
+
+```yaml
+x-shared-logs: &shared-logs
+   logging:
+      driver: "json-file"
+      options:
+         max-size: "10k"
+
+services:
+  whisper-intel:
+    restart: "unless-stopped"
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile.intel  
+      args:
+        - WHISPER_VERSION=v1.7.4
+    volumes:
+      - ./models:/app/models
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      WHISPER_MODEL: large-v3-turbo
+      WHISPER_MODEL_QUANTIZATION: q4_0
+    <<: *shared-logs
+```
 
 3. Build the Docker image:
 
