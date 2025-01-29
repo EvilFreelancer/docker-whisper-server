@@ -63,6 +63,8 @@ services:
       dockerfile: Dockerfile.intel  
       args:
         - WHISPER_VERSION=v1.7.4
+    devices:
+       - /dev/dri
     volumes:
       - ./models:/app/models
     ports:

@@ -60,6 +60,35 @@ Runtime вы сможете найти в моей публикации
    cp docker-compose.dist.yml docker-compose.yml
    ```
 
+Пример для Intel Arc видеокарт:
+
+```yaml
+x-shared-logs: &shared-logs
+   logging:
+      driver: "json-file"
+      options:
+         max-size: "10k"
+
+services:
+  whisper-intel:
+    restart: "unless-stopped"
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile.intel  
+      args:
+        - WHISPER_VERSION=v1.7.4
+    devices:
+      - /dev/dri
+    volumes:
+      - ./models:/app/models
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      WHISPER_MODEL: large-v3-turbo
+      WHISPER_MODEL_QUANTIZATION: q4_0
+    <<: *shared-logs
+```
+
 3. Скопируем конфигурацию OpenAI-like API сервера:
 
    ```shell
