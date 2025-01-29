@@ -6,8 +6,6 @@ WORKDIR /app
 # Install dependencies
 RUN set -xe \
  && apt update -q \
-    # Need to update to at least version 2025.0.1
- && apt install -fyq intel-basekit \
  && apt install -fyq bash wget ffmpeg git make cmake vim g++ \
  && apt clean
 
@@ -50,6 +48,9 @@ COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
 COPY --from=builder /app/whisper.cpp/build/bin/quantize .
+
+# Special env var for avoiding "Bus error (core dumped)"
+ENV SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=0
 
 # Initialize entrypoint
 ADD entrypoint.sh .
