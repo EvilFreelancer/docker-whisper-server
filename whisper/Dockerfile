@@ -6,18 +6,6 @@ ARG BASE_CUDA_RUNTIME_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUN
 FROM ${BASE_CUDA_DEVEL_CONTAINER} as builder
 WORKDIR /app
 
-# Repo with sources
-ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
-
-# It may be name of branch, tag or commit hash
-ARG WHISPER_VERSION="master"
-
-# To get latest tag use this:
-# git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \
-#    "https://github.com/ggerganov/whisper.cpp.git" '*.*.*' | \
-#    tail --lines=1 | cut --delimiter='/' --fields=3
-# For details see here: https://stackoverflow.com/questions/8932389/git-shallow-clone-to-specific-tag)
-
 # Anti-"sanction" fix
 RUN set -xe \
  && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-*.list
@@ -28,12 +16,19 @@ RUN set -xe \
  && apt install -fyq bash wget ffmpeg git make cmake vim g++ \
  && apt clean
 
+# Repo with sources
+ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
+
+# It may be name of branch, tag or commit hash
+ARG WHISPER_VERSION="master"
+
 # Clone whisper.cpp repo
 RUN set -xe \
  && git clone "$WHISPER_REPO" whisper.cpp
 WORKDIR /app/whisper.cpp
 RUN set -xe \
- && git checkout "$WHISPER_VERSION"
+ && git checkout "$WHISPER_VERSION" \
+ && rm -rf .git
 
 # Build some whisper.cpp tools
 WORKDIR /app/whisper.cpp

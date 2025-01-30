@@ -16,7 +16,12 @@ ARG WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
 ARG WHISPER_VERSION="v1.7.4"
 
 # Clone whisper.cpp repo
-RUN git clone --branch "$WHISPER_VERSION" --depth 1 "$WHISPER_REPO"
+RUN set -xe \
+ && git clone "$WHISPER_REPO" whisper.cpp
+WORKDIR /app/whisper.cpp
+RUN set -xe \
+ && git checkout "$WHISPER_VERSION" \
+ && rm -rf .git
 
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
@@ -25,7 +30,7 @@ RUN set -xe  \
  && cmake --build build --config Release -v -j$(nproc)
 
 
-FROM intel/oneapi-runtime:${ONEAPI_IMAGE_VER} AS runtime
+FROM intel/oneapi-basekit:${ONEAPI_IMAGE_VER} AS runtime
 WORKDIR /app
 
 # Install basic dependencies
