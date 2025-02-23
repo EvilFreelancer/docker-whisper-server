@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-shared-logs: &shared-logs
   logging:
     driver: "json-file"
