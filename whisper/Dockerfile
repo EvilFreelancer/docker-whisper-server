@@ -3,7 +3,7 @@ ARG CUDA_VERSION=12.6.1
 ARG BASE_CUDA_DEVEL_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 ARG BASE_CUDA_RUNTIME_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
-FROM ${BASE_CUDA_DEVEL_CONTAINER} as builder
+FROM ${BASE_CUDA_DEVEL_CONTAINER} AS builder
 WORKDIR /app
 
 # Anti-"sanction" fix
@@ -39,7 +39,7 @@ RUN set -xe \
  && cmake --build build --config Release -v -j$(nproc)
 
 
-FROM ${BASE_CUDA_RUNTIME_CONTAINER}
+FROM ${BASE_CUDA_RUNTIME_CONTAINER} AS runtime
 WORKDIR /app
 
 # Anti-"sanction" fix

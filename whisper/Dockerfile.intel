@@ -1,6 +1,9 @@
-ARG ONEAPI_IMAGE_VER=2025.0.2-0-devel-ubuntu24.04
+ARG UBUNTU_VERSION=24.04
+ARG ONEAPI_VERSION=2025.0.2-0
+ARG BASE_ONEAPI_DEVEL_CONTAINER=intel/oneapi-basekit:${ONEAPI_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+ARG BASE_ONEAPI_RUNTIME_CONTAINER=intel/oneapi-basekit:${ONEAPI_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
-FROM intel/oneapi-basekit:${ONEAPI_IMAGE_VER} AS builder
+FROM ${BASE_ONEAPI_DEVEL_CONTAINER} AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -30,7 +33,7 @@ RUN set -xe  \
  && cmake --build build --config Release -v -j$(nproc)
 
 
-FROM intel/oneapi-basekit:${ONEAPI_IMAGE_VER} AS runtime
+FROM ${BASE_ONEAPI_DEVEL_CONTAINER} AS runtime
 WORKDIR /app
 
 # Install basic dependencies
