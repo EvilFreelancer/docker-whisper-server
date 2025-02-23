@@ -43,7 +43,7 @@ services:
       context: ./whisper
       args:
         # В качестве версии можно указать: тег, ветку или коммит
-        - WHISPER_VERSION=v1.6.2
+        - WHISPER_VERSION=v1.7.4
     volumes:
       - ./models:/app/models
     ports:
