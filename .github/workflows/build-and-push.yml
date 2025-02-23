@@ -1,0 +1,76 @@
+name: Check for new releases, build and push containers
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # every day at midnight
+
+jobs:
+  compare_tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install curl and jq
+        run: sudo apt-get install curl jq
+
+      - name: Get Docker Hub tags
+        id: docker_hub_tags
+        run: |
+          url="https://registry.hub.docker.com/v2/repositories/${owner}/${repo}/tags/"
+          result=$(curl -s "$url" | jq '."results"[]["name"]' | grep -v "latest" | grep -v "cuda")
+          sorted_result=$(echo "$result" | sed 's/\"//g' | sort -V | tr '\n' ',')
+          echo "::set-output name=result::$sorted_result"
+        env:
+          owner: evilfreelancer
+          repo: whisper-server
+
+      - name: Get GitHub Releases
+        id: github_releases
+        run: |
+          url="https://api.github.com/repos/${owner}/${repo}/releases"
+          result=$(curl -L -s "$url" | jq '.[]["name"]' | grep '^b*')
+          sorted_result=$(echo "$result" | sed 's/\"//g' | sort -V | tail -n 2 | tr '\n' ',')
+          echo "::set-output name=result::$sorted_result"
+        env:
+          owner: ggerganov
+          repo: whisper.cpp
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compare tags
+        run: |
+          docker_hub_tags="${{ steps.docker_hub_tags.outputs.result }}"
+          github_releases="${{ steps.github_releases.outputs.result }}"
+
+          IFS=',' read -r -a docker_hub_tags_array <<< "$docker_hub_tags"
+          IFS=',' read -r -a github_releases_array <<< "$github_releases"
+
+          docker buildx create --name my_builder --driver=docker-container
+
+          # Initialize a variable to track the latest tag
+          latest_tag=""
+
+          # Build and push images with missed tag
+          for tag in "${github_releases_array[@]}"; do
+            if [[ ! " ${docker_hub_tags_array[*]} " =~ " $tag " ]]; then
+              echo "Missing tag: $tag"
+              docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag}-cuda ./whisper.cpp/
+              docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./llama.cpp/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag}-intel ./whisper.cpp/
+              latest_tag=$tag
+            fi
+          done
+
+          # Tagging the latest version as 'latest'
+          if [ ! -z "$latest_tag" ]; then
+            echo "Tagging the latest version as 'latest': $latest_tag"
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:latest --tag=${owner}/${repo}:latest-cuda ./whisper.cpp/
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./llama.cpp/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:latest-intel ./whisper.cpp/
+          fi
+        env:
+          owner: evilfreelancer
+          repo: whisper-server
