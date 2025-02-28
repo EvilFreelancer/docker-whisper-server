@@ -24,6 +24,13 @@ services:
       - ./config.yml:/app/config.yml
     ports:
       - "127.0.0.1:5000:5000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [ gpu ]
+              count: all
     <<: *shared-logs
 
   server-swagger:
