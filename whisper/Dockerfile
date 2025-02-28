@@ -69,4 +69,6 @@ COPY --from=builder /app/whisper.cpp/build/bin/quantize .
 
 # Init entrypoint
 ADD entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
+
 ENTRYPOINT ["/app/entrypoint.sh"]

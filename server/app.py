@@ -1,11 +1,9 @@
-import json
 import uuid
 from datetime import datetime
-import random
 import os
 import logging
 from requests import Session
-from utils import load_config, get_logger, get_models, get_model
+from utils import load_config, get_logger, get_models, get_model, select_best_server
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 
@@ -19,7 +17,7 @@ _log.info(f'API listening on port: {api_port}')
 
 # Initialize Flask application and load system configuration
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB max
+app.config['MAX_CONTENT_LENGTH'] = os.getenv('MAX_CONTENT_LENGTH', 250 * 1024 * 1024)  # 25MB max
 app.logger.setLevel(logging.INFO)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -114,7 +112,7 @@ def transcriptions(language: str = None, response_format: str = None):
         request_id = str(uuid.uuid4())
 
         # Select a random server from model's endpoints list
-        endpoint = random.choice(config['models'][model]['endpoints'])
+        endpoint = select_best_server(config['models'][model]['endpoints'])
 
         # Init requests session
         session = Session()
