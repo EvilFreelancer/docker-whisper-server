@@ -26,14 +26,7 @@ services:
       - "127.0.0.1:5000:5000"
     environment:
       APP_TIMEOUT: 3600
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [ gpu ]
-              count: all
-    <<: *shared-logs
+    <<: *shared-deploy
 
   server-swagger:
     restart: "unless-stopped"
