@@ -3,3 +3,5 @@ flask-cors~=4.0.1
 requests~=2.32.3
 pyyaml~=6.0.2
 gunicorn~=23.0.0
+nvidia-ml-py3
+pynvml
