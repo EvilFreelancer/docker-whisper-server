@@ -13,4 +13,6 @@ gunicorn \
   --error-logfile=/dev/stderr \
   --access-logfile=/dev/stdout \
   --log-file=/dev/stdout \
+  --timeout=${APP_TIMEOUT:-3600} \
   wsgi:app
+

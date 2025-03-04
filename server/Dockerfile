@@ -14,5 +14,20 @@ RUN set -xe \
 
 # Copy sources
 COPY . .
+RUN chmod +x /app/entrypoint.sh
+
+
+# Для реального определения нагрузки на GPU нужно раскоментировать соответствующий блок, иначе будет просто случайное число от 0 до 100
+# Установка intel_gpu_top для видеокарт Intel
+# RUN set -xe \
+#  && apt install -fyq intel-gpu-tools
+
+# Установка rocm-smi для видеокарт AMD
+# RUN set -xe \
+#  && apt install -fyq wget \
+#  && wget https://repo.radeon.com/amdgpu-install/6.0.2/ubuntu/jammy/amdgpu-install_6.0.60002-1_all.deb \
+#  && apt install -fyq ./amdgpu-install_6.0.60002-1_all.deb \
+#  && amdgpu-install --usecase=rocm
+
 
 ENTRYPOINT ["/app/entrypoint.sh"]

@@ -3,6 +3,7 @@ models:
     owned_by: organization-owner
     endpoints:
       - base_url: http://whisper:9000/inference
+        gpu: 0
   #tiny:
   #  owned_by: organization-owner
   #  endpoints:

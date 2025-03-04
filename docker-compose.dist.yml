@@ -24,7 +24,9 @@ services:
       - ./config.yml:/app/config.yml
     ports:
       - "127.0.0.1:5000:5000"
-    <<: *shared-logs
+    environment:
+      APP_TIMEOUT: 3600
+    <<: *shared-deploy
 
   server-swagger:
     restart: "unless-stopped"
