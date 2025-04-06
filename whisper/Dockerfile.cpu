@@ -1,9 +1,8 @@
 ARG UBUNTU_VERSION=24.04
-ARG ONEAPI_VERSION=2025.0.2-0
-ARG BASE_ONEAPI_DEVEL_CONTAINER=intel/oneapi-basekit:${ONEAPI_VERSION}-devel-ubuntu${UBUNTU_VERSION}
-ARG BASE_ONEAPI_RUNTIME_CONTAINER=intel/oneapi-basekit:${ONEAPI_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
+ARG BASE_DEVEL_CONTAINER=ubuntu:${UBUNTU_VERSION}
+ARG BASE_RUNTIME_CONTAINER=ubuntu:${UBUNTU_VERSION}
 
-FROM ${BASE_ONEAPI_DEVEL_CONTAINER} AS builder
+FROM ${BASE_DEVEL_CONTAINER} AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -29,11 +28,11 @@ RUN set -xe \
 # Build whisper.cpp with MKL support
 WORKDIR /app/whisper.cpp
 RUN set -xe  \
- && cmake -B build -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+ && cmake -B build \
  && cmake --build build --config Release -v -j$(nproc)
 
 
-FROM ${BASE_ONEAPI_DEVEL_CONTAINER} AS runtime
+FROM ${BASE_RUNTIME_CONTAINER} AS runtime
 WORKDIR /app
 
 # Install basic dependencies
@@ -56,9 +55,6 @@ COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
 COPY --from=builder /app/whisper.cpp/build/bin/quantize .
-
-# Special env var for avoiding "Bus error (core dumped)"
-ENV SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=0
 
 # Initialize entrypoint
 ADD entrypoint.sh .
