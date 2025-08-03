@@ -1,11 +1,11 @@
 # Whisper.cpp API Webserver in Docker
 
+[Русский](./README.md) | **中文** | [English](./README.en.md)
+
 Whisper.cpp HTTP 服务器，用于自动语音识别 (ASR)，API 类似于 OpenAI 的接口，运行在 Docker 容器中。
 
 该项目包含构建带有基于 [whisper.cpp](https://github.com/ggerganov/whisper.cpp/tree/master/examples/server) 的转录服务器的
 Docker 容器的工具和配置。
-
-[Русский](./README.md) | **中文** | [English](./README.en.md)
 
 ## 功能
 
@@ -199,9 +199,12 @@ q6_k 或 14
 q8_0 或 7
 ```
 
-如果传递一个整数，脚本 `entrypoint.sh` 会[自动](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36)将其转换为相应的字符组合形式 `qX_X`。
+如果传递一个整数，脚本 `entrypoint.sh`
+会[自动](https://github.com/EvilFreelancer/docker-whisper-server/blob/main/whisper/entrypoint.sh#L20-L36)将其转换为相应的字符组合形式
+`qX_X`。
 
-有关更多量化信息，请参阅 whisper.cpp 项目文档中的[量化](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization)。
+有关更多量化信息，请参阅 whisper.cpp
+项目文档中的[量化](https://github.com/ggerganov/whisper.cpp/tree/master?tab=readme-ov-file#quantization)。
 
 ## 链接
 
