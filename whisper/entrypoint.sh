@@ -76,14 +76,14 @@ fi
 # Construct the command with the options
 CMD="./whisper-server"
 CMD+=" --model $WHISPER_MODEL_PATH"
+CMD+=" -mc 0"
 
 # Basic parameters
 [ -n "$WHISPER_THREADS" ]         && CMD+=" --threads $WHISPER_THREADS"
 [ -n "$WHISPER_PROCESSORS" ]      && CMD+=" --processors $WHISPER_PROCESSORS"
 [ -n "$WHISPER_HOST" ]            && CMD+=" --host $WHISPER_HOST"
 [ -n "$WHISPER_PORT" ]            && CMD+=" --port $WHISPER_PORT"
-# TODO: Need to uncomment this after release v.1.6.3
-#[ -n "$WHISPER_INFERENCE_PATH" ]  && CMD+=" --inference-path $WHISPER_INFERENCE_PATH"
+[ -n "$WHISPER_INFERENCE_PATH" ]  && CMD+=" --inference-path $WHISPER_INFERENCE_PATH"
 [ -n "$WHISPER_PUBLIC_PATH" ]     && CMD+=" --public $WHISPER_PUBLIC_PATH"
 [ -n "$WHISPER_OV_E_DEVICE" ]     && CMD+=" --ov-e-device $WHISPER_OV_E_DEVICE"
 
