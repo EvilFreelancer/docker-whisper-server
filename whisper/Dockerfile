@@ -65,7 +65,7 @@ COPY --from=builder /app/whisper.cpp/build/ggml/src/ggml-cuda/*.so /usr/lib/x86_
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
-COPY --from=builder /app/whisper.cpp/build/bin/quantize .
+COPY --from=builder /app/whisper.cpp/build/bin/whisper-quantize .
 
 # Init entrypoint
 ADD entrypoint.sh .
