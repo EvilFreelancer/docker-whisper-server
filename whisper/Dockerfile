@@ -35,7 +35,7 @@ WORKDIR /app/whisper.cpp
 RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1
 RUN set -xe \
  && export LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs/:$LD_LIBRARY_PATH \
- && cmake -B build -DGGML_CUDA=ON \
+ && cmake -B build -DGGML_CUDA=ON -DBUILD_SHARED_LIBS=OFF \
  && cmake --build build --config Release -v -j$(nproc)
 
 
@@ -58,10 +58,6 @@ RUN set -xe \
 
 # Copy compiled tools
 COPY --from=builder /app/whisper.cpp/models/download-ggml-model.sh .
-COPY --from=builder /app/whisper.cpp/build/src/*.so /usr/lib/x86_64-linux-gnu
-COPY --from=builder /app/whisper.cpp/build/src/*.so.* /usr/lib/x86_64-linux-gnu
-COPY --from=builder /app/whisper.cpp/build/ggml/src/*.so /usr/lib/x86_64-linux-gnu
-COPY --from=builder /app/whisper.cpp/build/ggml/src/ggml-cuda/*.so /usr/lib/x86_64-linux-gnu
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-bench .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-server .
 COPY --from=builder /app/whisper.cpp/build/bin/whisper-cli .
