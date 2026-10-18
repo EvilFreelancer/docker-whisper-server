@@ -72,15 +72,17 @@ x-shared-logs: &shared-logs
 services:
   whisper-intel:
     restart: "unless-stopped"
+    image: evilfreelancer/whisper-server:intel
     build:
       context: ./whisper
-      dockerfile: Dockerfile.intel  
+      dockerfile: Dockerfile.intel
       args:
-        - WHISPER_VERSION=v1.7.4
+        - WHISPER_VERSION=v1.9.3
     devices:
       - /dev/dri
     volumes:
       - ./models:/app/models
+      - ./sycl_cache:/root/.cache
     ports:
       - "127.0.0.1:9000:9000"
     environment:
@@ -88,6 +90,13 @@ services:
       WHISPER_MODEL_QUANTIZATION: q4_0
     <<: *shared-logs
 ```
+
+Образ для Intel по умолчанию выключает оптимизацию reorder в ggml-sycl
+(`GGML_SYCL_ENABLE_OPT=0`): на Arc A-серии она превращает распознавание моделей q8_0 в
+мусор при нормальной на вид скорости, модели f16 работают в любом случае. Том
+`./sycl_cache:/root/.cache` сохраняет скомпилированные ядра SYCL между перезапусками,
+без него каждый старт заново компилирует их около минуты. Карту выбирает
+`ONEAPI_DEVICE_SELECTOR=level_zero:<номер>` в `environment`.
 
 3. Скопируем конфигурацию OpenAI-like API сервера:
 

@@ -58,15 +58,17 @@ x-shared-logs: &shared-logs
 services:
   whisper-intel:
     restart: "unless-stopped"
+    image: evilfreelancer/whisper-server:intel
     build:
       context: ./whisper
-      dockerfile: Dockerfile.intel  
+      dockerfile: Dockerfile.intel
       args:
-        - WHISPER_VERSION=v1.7.4
+        - WHISPER_VERSION=v1.9.3
     devices:
        - /dev/dri
     volumes:
       - ./models:/app/models
+      - ./sycl_cache:/root/.cache
     ports:
       - "127.0.0.1:9000:9000"
     environment:
@@ -74,6 +76,13 @@ services:
       WHISPER_MODEL_QUANTIZATION: q4_0
     <<: *shared-logs
 ```
+
+The Intel image switches the reorder optimization of ggml-sycl off by default
+(`GGML_SYCL_ENABLE_OPT=0`): on Arc A-series it turns q8_0 models into garbage while the
+speed looks fine; f16 models are correct either way. A `./sycl_cache:/root/.cache` volume
+keeps the compiled SYCL kernels between restarts, without it every start compiles them
+again for about a minute. Pick the card with `ONEAPI_DEVICE_SELECTOR=level_zero:<index>`
+in `environment`.
 
 3. Build the Docker image:
 
