@@ -59,8 +59,8 @@ jobs:
           for tag in "${github_releases_array[@]}"; do
             if [[ ! " ${docker_hub_tags_array[*]} " =~ " $tag " ]]; then
               echo "Missing tag: $tag"
-              docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag} --tag=${owner}/${repo}:${tag}-cuda ./whisper.cpp/
-              docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./llama.cpp/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag}-intel ./whisper.cpp/
+              docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag} --tag=${owner}/${repo}:${tag}-cuda ./whisper/
+              docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./whisper/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag}-intel ./whisper/
               latest_tag=$tag
             fi
           done
@@ -68,8 +68,8 @@ jobs:
           # Tagging the latest version as 'latest'
           if [ ! -z "$latest_tag" ]; then
             echo "Tagging the latest version as 'latest': $latest_tag"
-            docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:latest --tag=${owner}/${repo}:cuda ./whisper.cpp/
-            docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./llama.cpp/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:intel ./whisper.cpp/
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:latest --tag=${owner}/${repo}:cuda ./whisper/
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./whisper/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:intel ./whisper/
           fi
         env:
           owner: evilfreelancer
