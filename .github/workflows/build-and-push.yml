@@ -1,40 +1,32 @@
 name: Check for new releases, build and push containers
 on:
   workflow_dispatch:
+    inputs:
+      versions:
+        description: "whisper.cpp tags to build and push, space separated (rebuilt even if already published); empty: the missing ones of the last five releases"
+        required: false
+        default: ""
   schedule:
     - cron: '0 0 * * *' # every day at midnight
 
 jobs:
-  compare_tags:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      owner: evilfreelancer
+      repo: whisper-server
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install curl and jq
-        run: sudo apt-get install curl jq
-
-      - name: Get Docker Hub tags
-        id: docker_hub_tags
+      # The Intel image unpacks to ~19 GB on top of the oneAPI base; the stock runner
+      # has ~14 GB free.
+      - name: Free disk space
         run: |
-          url="https://registry.hub.docker.com/v2/repositories/${owner}/${repo}/tags/"
-          result=$(curl -s "$url" | jq '."results"[]["name"]' | grep -v "latest")
-          sorted_result=$(echo "$result" | sed 's/\"//g' | sort -V | tr '\n' ',')
-          echo "::set-output name=result::$sorted_result"
-        env:
-          owner: evilfreelancer
-          repo: whisper-server
-
-      - name: Get GitHub Releases
-        id: github_releases
-        run: |
-          url="https://api.github.com/repos/${owner}/${repo}/releases"
-          result=$(curl -L -s "$url" | jq '.[]["name"]' | grep '^b*')
-          sorted_result=$(echo "$result" | sed 's/\"//g' | sort -V | tail -n 5 | tr '\n' ',')
-          echo "::set-output name=result::$sorted_result"
-        env:
-          owner: ggerganov
-          repo: whisper.cpp
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune -af >/dev/null
+          df -h /
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -42,35 +34,57 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Compare tags
+      - name: Pick versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED: ${{ inputs.versions }}
         run: |
-          docker_hub_tags="${{ steps.docker_hub_tags.outputs.result }}"
-          github_releases="${{ steps.github_releases.outputs.result }}"
+          if [ -n "$REQUESTED" ]; then
+            list="$REQUESTED"
+          else
+            published=$(curl -s "https://registry.hub.docker.com/v2/repositories/${owner}/${repo}/tags/?page_size=100" \
+              | jq -r '.results[].name' | grep -vE '^(latest|cuda|intel)$' | sed -E 's/-(cuda|intel)$//' | sort -u)
+            releases=$(gh api repos/ggerganov/whisper.cpp/releases --jq '.[].tag_name' | sort -V | tail -n 5)
+            list=""
+            for tag in $releases; do
+              grep -qx "$tag" <<< "$published" || list="$list $tag"
+            done
+          fi
+          list=$(echo $list | tr ' ' '\n' | sort -V | tr '\n' ' ')
+          echo "To build: ${list:-nothing}"
+          echo "list=$list" >> "$GITHUB_OUTPUT"
 
-          IFS=',' read -r -a docker_hub_tags_array <<< "$docker_hub_tags"
-          IFS=',' read -r -a github_releases_array <<< "$github_releases"
-
-          docker buildx create --name my_builder --driver=docker-container
-
-          # Initialize a variable to track the latest tag
-          latest_tag=""
-
-          # Build and push images with missed tag
-          for tag in "${github_releases_array[@]}"; do
-            if [[ ! " ${docker_hub_tags_array[*]} " =~ " $tag " ]]; then
-              echo "Missing tag: $tag"
-              docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag} --tag=${owner}/${repo}:${tag}-cuda ./whisper/
-              docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./whisper/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:${tag}-intel ./whisper/
-              latest_tag=$tag
-            fi
+      - name: Build and push
+        if: steps.versions.outputs.list != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          docker buildx create --name my_builder --driver=docker-container --use
+          newest=""
+          for tag in ${{ steps.versions.outputs.list }}; do
+            echo "::group::$tag cuda"
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 \
+              --build-arg WHISPER_VERSION=${tag} \
+              --tag=${owner}/${repo}:${tag} --tag=${owner}/${repo}:${tag}-cuda ./whisper/
+            docker buildx prune --builder=my_builder -af >/dev/null
+            echo "::endgroup::"
+            echo "::group::$tag intel"
+            docker buildx build --builder=my_builder --push --platform=linux/amd64 \
+              --file ./whisper/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} \
+              --tag=${owner}/${repo}:${tag}-intel ./whisper/
+            docker buildx prune --builder=my_builder -af >/dev/null
+            echo "::endgroup::"
+            newest=$tag
           done
 
-          # Tagging the latest version as 'latest'
-          if [ ! -z "$latest_tag" ]; then
-            echo "Tagging the latest version as 'latest': $latest_tag"
-            docker buildx build --builder=my_builder --push --platform=linux/amd64 --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:latest --tag=${owner}/${repo}:cuda ./whisper/
-            docker buildx build --builder=my_builder --push --platform=linux/amd64 --file ./whisper/Dockerfile.intel --build-arg WHISPER_VERSION=${tag} --tag=${owner}/${repo}:intel ./whisper/
+          # latest, cuda and intel follow the newest whisper.cpp release when this run built
+          # it, without a second build: the manifests are copied on the registry.
+          top=$(gh api repos/ggerganov/whisper.cpp/releases --jq '.[].tag_name' | sort -V | tail -n 1)
+          if [ "$newest" = "$top" ]; then
+            echo "Tagging $newest as latest, cuda and intel"
+            docker buildx imagetools create -t ${owner}/${repo}:latest -t ${owner}/${repo}:cuda ${owner}/${repo}:${newest}-cuda
+            docker buildx imagetools create -t ${owner}/${repo}:intel ${owner}/${repo}:${newest}-intel
+          else
+            echo "Newest built is $newest, the newest release is $top: latest stays where it is"
           fi
-        env:
-          owner: evilfreelancer
-          repo: whisper-server
